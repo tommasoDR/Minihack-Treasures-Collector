@@ -75,6 +75,8 @@ def generate_env():
     clue_objects, goal_objects = read_object_file(object_file_path)
     add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
-
     env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("chars", "pixel"), des_file=levelgen.get_des())
+    #print_level(env)
     return env
+
+#generate_env()
