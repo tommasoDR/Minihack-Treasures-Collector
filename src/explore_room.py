@@ -1,7 +1,7 @@
 import random
-from src.utils import *
-from src.a_star import a_star
-from src.generate_room import generate_env
+from utils import *
+from a_star import a_star
+from generate_room import generate_env
 from IPython import display
 
 # Trade-off between exploration and exploitation
@@ -24,9 +24,6 @@ def exhaustive_search(
     :param game: the image of the game
     :param environment: the environment of the game
     """
-
-    print("Starting position: {}".format(starting_position))
-    print("Number of floor positions: {}".format(len(floor_positions)))
 
     while floor_positions:
 
@@ -56,12 +53,13 @@ def exhaustive_search(
         floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
 
         actions = actions_from_path(starting_position, path)
+
         image = plt.imshow(game[:, 410:840])
         for action in actions:
             s, _, _, _ = environment.step(action)
+            image.set_data(s['pixel'][:, 410:840])
             display.display(plt.gcf())
             display.clear_output(wait=True)
-            image.set_data(s['pixel'][:, 410:840])
 
         # next loop I'll start from where I arrived
         starting_position = target

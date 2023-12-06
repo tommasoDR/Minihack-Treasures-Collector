@@ -1,6 +1,6 @@
 import math
 from enum import Enum
-from src.generate_room import *
+from generate_room import *
 from typing import Tuple, List, NewType
 
 Location = NewType("Location", Tuple[int, int])
@@ -32,7 +32,7 @@ def allowed_moves(game_map: np.ndarray, position_element: int, excluded: List[Lo
 
     x, y = position_element
     obstacles = ["-", "|"]
-    return (chr(game_map[x, y]) not in obstacles) and (position_element not in excluded)
+    return (chr(game_map[y, x]) not in obstacles) and (position_element not in excluded)
 
 
 def get_neighbors(game_map: np.ndarray, current: Location, excluded: List[Location]) -> List[Location]:
@@ -44,7 +44,7 @@ def get_neighbors(game_map: np.ndarray, current: Location, excluded: List[Locati
     :return: the list of the neighbors of the current position
     """
 
-    x_limit, y_limit = game_map.shape
+    y_limit, x_limit = game_map.shape
     neighbors = []
     x, y = current
     # North
@@ -100,7 +100,7 @@ def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
     :return: the position of the player as a tuple
     """
 
-    x, y = np.where(game_map == ord(symbol))
+    y, x = np.where(game_map == ord(symbol))
     return x[0], y[0]
 
 
@@ -117,14 +117,14 @@ def get_floor_positions(state):
     clue_object_symbols = [object_symbol for (_, object_symbol, _) in clue_objects]
     goal_object_symbols = [object_symbol for (_, object_symbol) in goal_objects]
     walkable_symbols = clue_object_symbols + goal_object_symbols + ['.']
-    for i in range(len(matrix_map)):
-        for j in range(len(matrix_map[i])):
-            if chr(matrix_map[i][j]) in walkable_symbols:
-                floor_positions.append((i, j))
+    for y in range(len(matrix_map)):
+        for x in range(len(matrix_map[y])):
+            if chr(matrix_map[y][x]) in walkable_symbols:
+                floor_positions.append((x, y))
     return floor_positions
 
 
-def get_direction(x_start, y_start, x_current, y_current) -> Direction:
+def get_direction(x_start, y_start, x_target, y_target) -> Direction:
     """
     Given two points, returns the direction to go from the first to the second.
 
@@ -137,14 +137,14 @@ def get_direction(x_start, y_start, x_current, y_current) -> Direction:
 
     :raises ValueError: If the two points are on the same line or column
     """
-    if x_start == x_current:
-        return Direction.SOUTH if y_start > y_current else Direction.NORTH
-    elif y_start == y_current:
-        return Direction.WEST if x_start > x_current else Direction.EAST
-    elif x_start > x_current:
-        return Direction.SOUTH_WEST if y_start > y_current else Direction.NORTH_WEST
-    elif x_start < x_current:
-        return Direction.SOUTH_EAST if y_start > y_current else Direction.NORTH_EAST
+    if x_start == x_target:
+        return Direction.NORTH if y_start > y_target else Direction.SOUTH
+    elif y_start == y_target:
+        return Direction.WEST if x_start > x_target else Direction.EAST
+    elif x_start > x_target:
+        return Direction.NORTH_WEST if y_start > y_target else Direction.SOUTH_WEST
+    elif x_start < x_target:
+        return Direction.NORTH_EAST if y_start > y_target else Direction.SOUTH_EAST
     else:
         raise ValueError("The two points are on the same line or column")
 
@@ -158,7 +158,7 @@ def actions_from_path(start: Location, path: List[Location]) -> List[int]:
     :return: The list of actions to perform to follow the path
     """
     actions = []
-    x_start, y_start = start
+    x_start, y_start = path.pop(0)
     for x, y in path:
         actions.append(get_direction(x_start, y_start, x, y).value)
         x_start, y_start = x, y

@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import json
-from src.data import *
+from data import *
 
 
 def read_des_file(des_file):
@@ -83,7 +83,7 @@ def generate_env():
     clue_objects, goal_objects = read_object_file(object_file_path)
     add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
-    env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("chars", "pixel"), des_file=levelgen.get_des())
+    env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("chars", "pixel"), autopickup=False, des_file=levelgen.get_des())
     # print_level(env)
     return env
 
