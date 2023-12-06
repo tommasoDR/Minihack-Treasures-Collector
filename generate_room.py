@@ -6,6 +6,7 @@ import sys
 import json
 from src.data import *
 
+
 def read_des_file(des_file):
     try:
         with open(des_file, 'r') as file:
@@ -24,11 +25,12 @@ def read_des_file(des_file):
         sys.exit(1)
     return map_content
 
+
 def read_object_file(object_file):
     try:
         with open(object_file, 'r') as file:
             json_content = json.loads(file.read())
-            clue_objects = json_content["clue_objects"] 
+            clue_objects = json_content["clue_objects"]
             goal_objects = json_content["goal_objects"]
     except Exception as e:
         print("Error reading object file")
@@ -36,12 +38,15 @@ def read_object_file(object_file):
         sys.exit(1)
     return (clue_objects, goal_objects)
 
+
 def random_room_type():
     return np.random.randint(0, num_rooms)
 
+
 def random_pattern_file():
-    pattern = np.random.randint(1, num_patterns+1)
+    pattern = np.random.randint(1, num_patterns + 1)
     return room_pattern_path.format(pattern)
+
 
 def add_goal_objects(levelgen, goal_objects, room_type):
     if len(goal_objects) != num_rooms:
@@ -49,10 +54,11 @@ def add_goal_objects(levelgen, goal_objects, room_type):
         sys.exit(1)
     curse_state = ["cursed" for i in range(len(goal_objects))]
     curse_state[room_type] = "uncursed"
-    i=0
+    i = 0
     for (object_name, object_symbol) in goal_objects:
         levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state[i])
         i += 1
+
 
 def add_random_objects(levelgen, object_info, room_type):
     for _ in range(num_generations_spins):
@@ -62,11 +68,13 @@ def add_random_objects(levelgen, object_info, room_type):
             if p <= spawn_probability[room_type]:
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
 
+
 def print_level(env):
     state = env.reset()
     env.render()
-    plt.imshow(state["pixel"][:,410:840])
+    plt.imshow(state["pixel"][:, 410:840])
     plt.savefig("level.png")
+
 
 def generate_env():
     room_pattern_file = random_pattern_file()
@@ -76,7 +84,14 @@ def generate_env():
     add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
     env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("chars", "pixel"), des_file=levelgen.get_des())
-    #print_level(env)
+    # print_level(env)
     return env
 
-#generate_env()
+
+# generate_env()
+if __name__ == "main":
+    env = generate_env()
+    state = env.reset()
+    env.render()
+    plt.imshow(state["pixel"][:, 410:840])
+    plt.savefig("level.png")

@@ -1,37 +1,42 @@
-import numpy as np
 import math
-from generate_room import*
+from generate_room import *
 from queue import PriorityQueue
-from typing import Tuple, List
+from typing import Tuple, List, NewType
 
-def get_player_location(game_map: np.ndarray, symbol : str = "@") -> Tuple[int, int]:
+Location = NewType("Location", Tuple[int, int])
+
+
+def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
     x, y = np.where(game_map == ord(symbol))
-    return (x[0], y[0])
+    return x[0], y[0]
+
 
 def is_wall(position_element: int) -> bool:
     obstacles = "|- "
     return chr(position_element) in obstacles
 
-def get_valid_moves(game_map: np.ndarray, current_position: Tuple[int, int]) -> List[Tuple[int, int]]:
+
+def get_valid_moves(game_map: np.ndarray, current_position: Location) -> List[Location]:
     x_limit, y_limit = game_map.shape
     valid = []
-    x, y = current_position    
+    x, y = current_position
     # North
-    if y - 1 > 0 and not is_wall(game_map[x, y-1]):
-        valid.append((x, y-1)) 
-    # East
-    if x + 1 < x_limit and not is_wall(game_map[x+1, y]):
-        valid.append((x+1, y)) 
-    # South
-    if y + 1 < y_limit and not is_wall(game_map[x, y+1]):
-        valid.append((x, y+1)) 
-    # West
-    if x - 1 > 0 and not is_wall(game_map[x-1, y]):
-        valid.append((x-1, y))
+    if y - 1 > 0 and not is_wall(game_map[x, y - 1]):
+        valid.append((x, y - 1))
+        # East
+    if x + 1 < x_limit and not is_wall(game_map[x + 1, y]):
+        valid.append((x + 1, y))
+        # South
+    if y + 1 < y_limit and not is_wall(game_map[x, y + 1]):
+        valid.append((x, y + 1))
+        # West
+    if x - 1 > 0 and not is_wall(game_map[x - 1, y]):
+        valid.append((x - 1, y))
 
     return valid
 
-def actions_from_path(start: Tuple[int, int], path: List[Tuple[int, int]]) -> List[int]:
+
+def actions_from_path(start: Location, path: List[Location]) -> List[int]:
     action_map = {
         "N": 0,
         "E": 1,
@@ -44,59 +49,64 @@ def actions_from_path(start: Tuple[int, int], path: List[Tuple[int, int]]) -> Li
         if x_s == x:
             if y_s > y:
                 actions.append(action_map["W"])
-            else: actions.append(action_map["E"])
+            else:
+                actions.append(action_map["E"])
         elif y_s == y:
             if x_s > x:
                 actions.append(action_map["N"])
-            else: actions.append(action_map["S"])
+            else:
+                actions.append(action_map["S"])
         else:
             raise Exception("x and y can't change at the same time. oblique moves not allowed!")
         x_s = x
         y_s = y
-    
+
     return actions
 
-def euclidean_distance(point1: Tuple[int, int], point2: Tuple[int, int]) -> float:
+
+def euclidean_distance(point1: Location, point2: Location) -> float:
     x1, y1 = point1
     x2, y2 = point2
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
-def manhattan_distance(point1: Tuple[int, int], point2: Tuple[int, int]) -> int:
+
+def manhattan_distance(point1: Location, point2: Location) -> int:
     x1, y1 = point1
     x2, y2 = point2
     return abs(x1 - x2) + abs(y1 - y2)
+
 
 def get_floor_positions(state):
     floor_positions = []
     matrix_map = state["chars"]
     (clue_objects, goal_objects) = read_object_file(object_file_path)
-    clue_object_symbols = [object_symbol for (_, object_symbol,_) in clue_objects]
+    clue_object_symbols = [object_symbol for (_, object_symbol, _) in clue_objects]
     goal_object_symbols = [object_symbol for (_, object_symbol) in goal_objects]
     walkable_symbols = clue_object_symbols + goal_object_symbols + ['.']
     for i in range(len(matrix_map)):
         for j in range(len(matrix_map[i])):
             if chr(matrix_map[i][j]) in walkable_symbols:
-                floor_positions.append((i,j))
+                floor_positions.append((i, j))
     return floor_positions
 
-# given a path it returns all the points to be considered visited
-def already_visited(list: List[Tuple[int, int]]): 
+
+def already_visited(list: List[Location]):
     floor_already_visited = []
-    for tuple in list: 
-        x, y = tuple
+    for x, y in list:
         floor_already_visited.append((x, y))
-        floor_already_visited.append((x-1, y-1))
-        floor_already_visited.append((x-1, y))
-        floor_already_visited.append((x-1, y+1))
-        floor_already_visited.append((x, y+1))
-        floor_already_visited.append((x+1, y+1))
-        floor_already_visited.append((x+1, y))
-        floor_already_visited.append((x+1, y-1))
-        floor_already_visited.append((x, y-1))
-    
+        floor_already_visited.append((x - 1, y - 1))
+        floor_already_visited.append((x - 1, y))
+        floor_already_visited.append((x - 1, y + 1))
+        floor_already_visited.append((x, y + 1))
+        floor_already_visited.append((x + 1, y + 1))
+        floor_already_visited.append((x + 1, y))
+        floor_already_visited.append((x + 1, y - 1))
+        floor_already_visited.append((x, y - 1))
+
     return floor_already_visited
 
-def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:
+
+def build_path(parent: dict, target: Location) -> List[Location]:
     path = []
     while target is not None:
         path.append(target)
@@ -104,7 +114,8 @@ def build_path(parent: dict, target: Tuple[int, int]) -> List[Tuple[int, int]]:
     path.reverse()
     return path
 
-def a_star(game_map: np.ndarray, start: Tuple[int, int], target: Tuple[int, int], h: callable) -> List[Tuple[int, int]]:
+
+def a_star(game_map: np.ndarray, start: Location, target: Location, h: callable) -> List[Location]:
     # initialize open and close list
     open_list = PriorityQueue()
     close_list = []
