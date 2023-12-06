@@ -5,7 +5,7 @@ from src.generate_room import generate_env
 from IPython import display
 
 # Trade-off between exploration and exploitation
-ALPHA = 0.9
+ALPHA = 0.7
 
 
 def exhaustive_search(
@@ -18,11 +18,11 @@ def exhaustive_search(
     """
     Performs an exhaustive search of the map, visiting all the floor positions
 
-    :param display:
-    :param game_map: The map of the game
-    :param start: The starting position of the agent
-    :param floor_positions: The list of floor positions as a list of Location
-    :param game:
+    :param game_map: the map of the game
+    :param starting_position: the starting position of the agent
+    :param floor_positions: the list of the floor positions
+    :param game: the image of the game
+    :param environment: the environment of the game
     """
 
     print("Starting position: {}".format(starting_position))
@@ -52,7 +52,8 @@ def exhaustive_search(
         path = a_star(game_map, starting_position, target, [])
 
         # delete floors visited with the path
-        floor_positions = list(filter(lambda x: x not in path, floor_positions))
+        neighborhood = already_visited(path)
+        floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
 
         actions = actions_from_path(starting_position, path)
         image = plt.imshow(game[:, 410:840])

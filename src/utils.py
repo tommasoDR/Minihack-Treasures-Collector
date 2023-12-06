@@ -16,9 +16,9 @@ class Direction(Enum):
     SOUTH = 2
     WEST = 3
     NORTH_EAST = 4
-    NORTH_WEST = 5
-    SOUTH_EAST = 6
-    SOUTH_WEST = 7
+    SOUTH_EAST = 5
+    SOUTH_WEST = 6
+    NORTH_WEST = 7
 
 
 def allowed_moves(game_map: np.ndarray, position_element: int, excluded: List[Location]) -> bool:
@@ -138,13 +138,13 @@ def get_direction(x_start, y_start, x_current, y_current) -> Direction:
     :raises ValueError: If the two points are on the same line or column
     """
     if x_start == x_current:
-        return Direction.WEST if y_start > y_current else Direction.EAST
+        return Direction.SOUTH if y_start > y_current else Direction.NORTH
     elif y_start == y_current:
-        return Direction.NORTH if x_start > x_current else Direction.SOUTH
+        return Direction.WEST if x_start > x_current else Direction.EAST
     elif x_start > x_current:
-        return Direction.NORTH_WEST if y_start > y_current else Direction.SOUTH_WEST
+        return Direction.SOUTH_WEST if y_start > y_current else Direction.NORTH_WEST
     elif x_start < x_current:
-        return Direction.NORTH_EAST if y_start > y_current else Direction.SOUTH_EAST
+        return Direction.SOUTH_EAST if y_start > y_current else Direction.NORTH_EAST
     else:
         raise ValueError("The two points are on the same line or column")
 
