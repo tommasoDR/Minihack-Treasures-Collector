@@ -1,5 +1,6 @@
 import random
 from src.utils import *
+from src.a_star import a_star
 from src.generate_room import generate_env
 from IPython import display
 
@@ -48,7 +49,7 @@ def exhaustive_search(
             target = random.choice(floor_positions)
 
         # path with A* to the target location
-        path = a_star(game_map, starting_position, target, manhattan_distance)
+        path = a_star(game_map, starting_position, target, [])
 
         # delete floors visited with the path
         floor_positions = list(filter(lambda x: x not in path, floor_positions))
