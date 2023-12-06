@@ -1,9 +1,22 @@
 import math
-from generate_room import *
+from enum import Enum
+
+from src.generate_room import *
 from queue import PriorityQueue
 from typing import Tuple, List, NewType
 
 Location = NewType("Location", Tuple[int, int])
+Location.__doc__ = "A location in the game map."
+
+
+class Direction(Enum):
+    """
+    A possible direction of the agent.
+    """
+    NORTH = 0
+    EAST = 1
+    SOUTH = 2
+    WEST = 3
 
 
 def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
@@ -36,31 +49,40 @@ def get_valid_moves(game_map: np.ndarray, current_position: Location) -> List[Lo
     return valid
 
 
-def actions_from_path(start: Location, path: List[Location]) -> List[int]:
-    action_map = {
-        "N": 0,
-        "E": 1,
-        "S": 2,
-        "W": 3
-    }
-    actions = []
-    x_s, y_s = start
-    for (x, y) in path:
-        if x_s == x:
-            if y_s > y:
-                actions.append(action_map["W"])
-            else:
-                actions.append(action_map["E"])
-        elif y_s == y:
-            if x_s > x:
-                actions.append(action_map["N"])
-            else:
-                actions.append(action_map["S"])
-        else:
-            raise Exception("x and y can't change at the same time. oblique moves not allowed!")
-        x_s = x
-        y_s = y
+def get_direction(x_start, y_start, x_current, y_current) -> Direction:
+    """
+    Given two points, returns the direction to go from the first to the second.
 
+    :param x_start: The x coordinate of the starting point
+    :param y_start: The y coordinate of the starting point
+    :param x_current: The x coordinate of the current point
+    :param y_current: The y coordinate of the current point
+
+    :return: The direction to go from the first to the second point
+
+    :raises ValueError: If the two points are on the same line or column
+    """
+    if x_start == x_current:
+        return Direction.WEST if y_start > y_current else Direction.EAST
+    elif y_start == y_current:
+        return Direction.NORTH if x_start > x_current else Direction.SOUTH
+    else:
+        raise ValueError("x and y can't change at the same time. Oblique moves not allowed!")
+
+
+def actions_from_path(start: Location, path: List[Location]) -> List[int]:
+    """
+    Given a path, returns the list of actions to perform to follow the path.
+
+    :param start: The starting position of the agent
+    :param path: The path to follow as a list of Location
+    :return: The list of actions to perform to follow the path
+    """
+    actions = []
+    x_start, y_start = start
+    for x, y in path:
+        actions.append(get_direction(x_start, y_start, x, y).value)
+        x_start, y_start = x, y
     return actions
 
 
@@ -76,7 +98,7 @@ def manhattan_distance(point1: Location, point2: Location) -> int:
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def get_floor_positions(state):
+def get_floor_positions(state) -> List[Location]:
     floor_positions = []
     matrix_map = state["chars"]
     (clue_objects, goal_objects) = read_object_file(object_file_path)
@@ -90,7 +112,7 @@ def get_floor_positions(state):
     return floor_positions
 
 
-def already_visited(list: List[Location]):
+def already_visited(list: List[Location]) -> List[Location]:
     floor_already_visited = []
     for x, y in list:
         floor_already_visited.append((x, y))
@@ -133,7 +155,7 @@ def a_star(game_map: np.ndarray, start: Location, target: Location, h: callable)
         # add the node to the close list
         close_list.append(current)
         if current == target:
-            print("Target found!")
+            # print("Target found!")
             path = build_path(parent, target)
             return path
         for neighbor in get_valid_moves(game_map, current):
