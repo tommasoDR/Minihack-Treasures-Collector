@@ -62,18 +62,12 @@ def add_goal_objects(levelgen, goal_objects, room_type):
 
 def add_random_objects(levelgen, object_info, room_type):
     for _ in range(num_generations_spins):
+        np.random.shuffle(object_info)
         for i in range(len(object_info)):
             (object_name, object_symbol, spawn_probability) = object_info[i]
             p = np.random.uniform()
             if p <= spawn_probability[room_type]:
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
-
-
-def print_level(env):
-    state = env.reset()
-    env.render()
-    plt.imshow(state["pixel"][:, 410:840])
-    plt.savefig("level.png")
 
 
 def generate_env():
@@ -83,15 +77,13 @@ def generate_env():
     clue_objects, goal_objects = read_object_file(object_file_path)
     add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
-    env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("chars", "pixel"), autopickup=False, des_file=levelgen.get_des())
-    # print_level(env)
+    env = gym.make("MiniHack-Skill-Custom-v0", observation_keys=("screen_descriptions_crop", "chars", "colors", "pixel"), obs_crop_h=3, obs_crop_w=3, autopickup=False, des_file=levelgen.get_des())
     return env
 
 
 # generate_env()
-if __name__ == "main":
+if __name__ == "__main__":
+    np.set_printoptions(threshold=sys.maxsize)
     env = generate_env()
-    state = env.reset()
-    env.render()
-    plt.imshow(state["pixel"][:, 410:840])
-    plt.savefig("level.png")
+    print_level(env)
+    

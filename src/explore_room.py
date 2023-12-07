@@ -5,30 +5,28 @@ from generate_room import generate_env
 from IPython import display
 
 # Trade-off between exploration and exploitation
-ALPHA = 0.7
+PROB_NEAREST_UNVISITED = 0.7
 
 
-def exhaustive_search(
-        game_map: np.ndarray,
-        starting_position: Location,
-        floor_positions: List[Location],
-        game,
+def exhaustive_exploration(
+        initial_state,
         environment
 ):
     """
     Performs an exhaustive search of the map, visiting all the floor positions
 
-    :param game_map: the map of the game
-    :param starting_position: the starting position of the agent
-    :param floor_positions: the list of the floor positions
-    :param game: the image of the game
+    :param initial_state: the state of the game when starting the exploration
     :param environment: the environment of the game
     """
+    game_map = initial_state['chars']
+    starting_position = get_player_location(game_map)
+    floor_positions = get_floor_positions(state)
+    game = initial_state['pixel']
 
     while floor_positions:
 
         # obtain floor visited (the neighbors of start)
-        neighborhood = already_visited([starting_position])
+        neighborhood = floor_visited([starting_position])
 
         # delete floor visited
         floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
@@ -38,7 +36,7 @@ def exhaustive_search(
 
         # generate a random number between 0 and 1
         p = random.uniform(0, 1)
-        if p <= ALPHA:
+        if p <= PROB_NEAREST_UNVISITED:
             # nearest unvisited floor location target
             target = min(floor_positions, key=lambda x: euclidean_distance(starting_position, x))
         else:
@@ -49,15 +47,15 @@ def exhaustive_search(
         path = a_star(game_map, starting_position, target, [])
 
         # delete floors visited with the path
-        neighborhood = already_visited(path)
+        neighborhood = floor_visited(path)
         floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
 
-        actions = actions_from_path(starting_position, path)
+        actions = actions_from_path(path)
 
         image = plt.imshow(game[:, 410:840])
         for action in actions:
-            s, _, _, _ = environment.step(action)
-            image.set_data(s['pixel'][:, 410:840])
+            new_state, _, _, _ = environment.step(action)
+            image.set_data(new_state['pixel'][:, 410:840])
             display.display(plt.gcf())
             display.clear_output(wait=True)
 
@@ -68,11 +66,5 @@ def exhaustive_search(
 if __name__ == "__main__":
     env = generate_env()
     state = env.reset()
-    env.render()
 
-    game_map = state['chars']
-    start = get_player_location(game_map)
-    floor = get_floor_positions(state)
-    game = state['pixel']
-
-    exhaustive_search(game_map, start, floor, game, env)
+    exhaustive_exploration(state, env)

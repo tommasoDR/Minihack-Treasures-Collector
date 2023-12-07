@@ -63,13 +63,13 @@ def get_neighbors(game_map: np.ndarray, current: Location, excluded: List[Locati
     # North-est
     if y - 1 > 0 and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y - 1), excluded):
         neighbors.append((x + 1, y - 1))
-        # North-west
+    # North-west
     if y - 1 > 0 and x - 1 > 0 and allowed_moves(game_map, (x - 1, y - 1), excluded):
         neighbors.append((x - 1, y - 1))
-        # South-est
+    # South-est
     if y + 1 < y_limit and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y + 1), excluded):
         neighbors.append((x + 1, y + 1))
-        # South-west
+    # South-west
     if y + 1 < y_limit and x - 1 > 0 and allowed_moves(game_map, (x - 1, y + 1), excluded):
         neighbors.append((x - 1, y + 1))
 
@@ -149,7 +149,7 @@ def get_direction(x_start, y_start, x_target, y_target) -> Direction:
         raise ValueError("The two points are on the same line or column")
 
 
-def actions_from_path(start: Location, path: List[Location]) -> List[int]:
+def actions_from_path(path: List[Location]) -> List[int]:
     """
     Given a path, returns the list of actions to perform to follow the path.
 
@@ -158,6 +158,8 @@ def actions_from_path(start: Location, path: List[Location]) -> List[int]:
     :return: The list of actions to perform to follow the path
     """
     actions = []
+    if not path:
+        return []
     x_start, y_start = path.pop(0)
     for x, y in path:
         actions.append(get_direction(x_start, y_start, x, y).value)
@@ -177,7 +179,7 @@ def manhattan_distance(point1: Location, point2: Location) -> int:
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def already_visited(list: List[Location]) -> List[Location]:
+def floor_visited(list: List[Location]) -> List[Location]:
     floor_already_visited = []
     for x, y in list:
         floor_already_visited.append((x, y))
@@ -191,3 +193,13 @@ def already_visited(list: List[Location]) -> List[Location]:
         floor_already_visited.append((x, y - 1))
 
     return floor_already_visited
+
+
+def print_level(state):
+    """
+    Given a state, save an image of the level.
+
+    :param state: the state of the game
+    """
+    plt.imshow(state["pixel"][:, 410:840])
+    plt.savefig("level.png")
