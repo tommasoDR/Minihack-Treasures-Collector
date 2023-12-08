@@ -59,7 +59,7 @@ def get_neighbors(game_map: np.ndarray, current: Location, excluded: List[Locati
     # West
     if x - 1 > 0 and allowed_moves(game_map, (x - 1, y), excluded):
         neighbors.append((x - 1, y))
-
+    """
     # North-est
     if y - 1 > 0 and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y - 1), excluded):
         neighbors.append((x + 1, y - 1))
@@ -72,7 +72,7 @@ def get_neighbors(game_map: np.ndarray, current: Location, excluded: List[Locati
     # South-west
     if y + 1 < y_limit and x - 1 > 0 and allowed_moves(game_map, (x - 1, y + 1), excluded):
         neighbors.append((x - 1, y + 1))
-
+    """
     return neighbors
 
 
@@ -166,6 +166,49 @@ def actions_from_path(path: List[Location]) -> List[int]:
         x_start, y_start = x, y
     return actions
 
+def TFFFM_distance(game_map, starting_position, target):
+    distance = 0
+    distance2 = 0
+    x_start, y_start = starting_position
+    x_target, y_target = target
+    
+    x_start_or , y_start_or = starting_position
+    x_target_or, y_target_or= target
+    
+    if(x_start > x_target):
+        x_start, x_target = x_target, x_start
+    if(y_start > y_target):
+        y_start, y_target = y_target, y_start   
+    
+    for i in range(x_start, x_target+1):
+        t = chr(game_map[y_start_or][i])
+        if (t == '-' or t == '|'):
+            distance += 130
+        else:
+            distance += 1
+    for i in range(y_start, y_target+1):
+        t = chr(game_map[i][x_target_or])
+        if (t == '-' or t == '|'):
+            distance += 130
+        else:
+            distance += 1
+     
+    
+    for i in range(y_start, y_target+1):
+        t = chr(game_map[i][x_start_or])
+        if (t == '-' or t == '|'):
+            distance2 += 130
+        else:
+            distance2 += 1        
+    for i in range(x_start, x_target+1):
+        t = chr(game_map[y_target_or][i])
+        if (t == '-' or t == '|'):
+            distance2 += 130
+        else:
+            distance2 += 1
+
+    return min(distance, distance2)
+
 
 def euclidean_distance(point1: Location, point2: Location) -> float:
     x1, y1 = point1
@@ -177,6 +220,18 @@ def manhattan_distance(point1: Location, point2: Location) -> int:
     x1, y1 = point1
     x2, y2 = point2
     return abs(x1 - x2) + abs(y1 - y2)
+
+
+def diagonal_distance(point1: Location, point2: Location) -> float:
+    """
+    :param point1: firs point as a tuple
+    :param point2: second point as a tuple
+            
+    :return: the diagonal distance between the two points
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+    return max(abs(x1 - x2), abs(y1 - y2))
 
 
 def floor_visited(list: List[Location]) -> List[Location]:

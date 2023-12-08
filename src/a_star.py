@@ -4,31 +4,6 @@ import numpy as np
 
 """this file implement A* algorithm for the final search of target object"""
 
-
-def euclidean_distance(point1: Location, point2: Location) -> float:
-    """
-    :param point1: firs point as a tuple
-    :param point2: second point as a tuple
-            
-    :return: the Euclidean distance between the two points
-    """
-    x1, y1 = point1
-    x2, y2 = point2
-    return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-
-
-def diagonal_distance(point1: Location, point2: Location) -> float:
-    """
-    :param point1: firs point as a tuple
-    :param point2: second point as a tuple
-            
-    :return: the diagonal distance between the two points
-    """
-    x1, y1 = point1
-    x2, y2 = point2
-    return max(abs(x1 - x2), abs(y1 - y2))
-
-
 def a_star(map: np.ndarray, start: Location, target: Location,
            excluded: List[Location]) -> List[Location]:
     """
@@ -41,7 +16,7 @@ def a_star(map: np.ndarray, start: Location, target: Location,
     """
 
     # fix the heuristic function in base of the agent's movement
-    h = euclidean_distance
+    h = manhattan_distance
     # h = diagonal_distance
 
     # initialize the NOT visited list: it contains the nodes that have to be visited
@@ -79,8 +54,11 @@ def a_star(map: np.ndarray, start: Location, target: Location,
                 # add the neighbor to the NOT visited list
                 parent[neighbor] = current_node
 
-                if (neighbor in support.keys()) and current_g + 1 < support[neighbor]:
-                    support[neighbor] = current_g + 1
+                if (neighbor in support.keys()):
+                    if(current_g + 1 >= support[neighbor]):
+                        continue
+                    
+                support[neighbor] = current_g + 1
                 heapq.heappush(not_visited, (f_neighbor, (neighbor, current_g + 1)))
 
     print("Target node not found!")

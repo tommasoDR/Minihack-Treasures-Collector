@@ -1,11 +1,11 @@
 import random
 from utils import *
-from a_star import a_star
+from a_star import *#a_star
 from generate_room import generate_env
 from IPython import display
 
 # Trade-off between exploration and exploitation
-PROB_NEAREST_UNVISITED = 0.7
+PROB_NEAREST_UNVISITED = 1.0
 
 
 def exhaustive_exploration(
@@ -20,7 +20,7 @@ def exhaustive_exploration(
     """
     game_map = initial_state['chars']
     starting_position = get_player_location(game_map)
-    floor_positions = get_floor_positions(state)
+    floor_positions = get_floor_positions(initial_state)
     game = initial_state['pixel']
 
     while floor_positions:
@@ -38,7 +38,7 @@ def exhaustive_exploration(
         p = random.uniform(0, 1)
         if p <= PROB_NEAREST_UNVISITED:
             # nearest unvisited floor location target
-            target = min(floor_positions, key=lambda x: euclidean_distance(starting_position, x))
+            target = min(floor_positions, key=lambda x: TFFFM_distance(game_map, starting_position, x))
         else:
             # random target
             target = random.choice(floor_positions)
@@ -51,13 +51,15 @@ def exhaustive_exploration(
         floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
 
         actions = actions_from_path(path)
-
+        
         image = plt.imshow(game[:, 410:840])
         for action in actions:
             new_state, _, _, _ = environment.step(action)
+            
             image.set_data(new_state['pixel'][:, 410:840])
             display.display(plt.gcf())
             display.clear_output(wait=True)
+            
 
         # next loop I'll start from where I arrived
         starting_position = target
