@@ -1,5 +1,6 @@
 import math
 from enum import Enum
+import matplotlib.pyplot as plt
 from generate_room import *
 from typing import Tuple, List, NewType
 
@@ -103,8 +104,14 @@ def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
     y, x = np.where(game_map == ord(symbol))
     return x[0], y[0]
 
+def get_walkable_symbols():
+    (clue_objects, goal_objects) = read_object_file(object_file_path)
+    clue_object_symbols = [symbol for (_, _, display_symbols, _) in clue_objects for symbol in display_symbols]
+    goal_object_symbols = [object_symbol for (_, object_symbol) in goal_objects]
+    walkable_symbols = clue_object_symbols + goal_object_symbols + ['.'] + ['@']
+    return walkable_symbols
 
-def get_floor_positions(state):
+def get_floor_positions(game_map):
     """
     :param state: the state of the game
 
@@ -112,16 +119,26 @@ def get_floor_positions(state):
     """
 
     floor_positions = []
-    matrix_map = state["chars"]
-    (clue_objects, goal_objects) = read_object_file(object_file_path)
-    clue_object_symbols = [object_symbol for (_, object_symbol, _) in clue_objects]
-    goal_object_symbols = [object_symbol for (_, object_symbol) in goal_objects]
-    walkable_symbols = clue_object_symbols + goal_object_symbols + ['.']
-    for y in range(len(matrix_map)):
-        for x in range(len(matrix_map[y])):
-            if chr(matrix_map[y][x]) in walkable_symbols:
+    walkable_symbols = get_walkable_symbols()
+    for y in range(len(game_map)):
+        for x in range(len(game_map[y])):
+            if chr(game_map[y][x]) in walkable_symbols:
                 floor_positions.append((x, y))
     return floor_positions
+
+def get_wall_positions(game_map):
+    """
+    :param state: the state of the game
+
+    :return: the list of the wall positions
+    """
+    wall = ['|', '-']
+    wall_positions = []
+    for y in range(len(game_map)):
+        for x in range(len(game_map[y])):
+            if chr(game_map[y][x]) in wall:
+                wall_positions.append((x, y))
+    return wall_positions
 
 
 def get_direction(x_start, y_start, x_target, y_target) -> Direction:
@@ -167,7 +184,7 @@ def actions_from_path(path: List[Location]) -> List[int]:
     return actions
 
 def TFFFM_distance(game_map, starting_position, target):
-    distance = 0
+    distance1 = 0
     distance2 = 0
     x_start, y_start = starting_position
     x_target, y_target = target
@@ -181,33 +198,29 @@ def TFFFM_distance(game_map, starting_position, target):
         y_start, y_target = y_target, y_start   
     
     for i in range(x_start, x_target+1):
-        t = chr(game_map[y_start_or][i])
-        if (t == '-' or t == '|'):
-            distance += 130
+        t1 = chr(game_map[y_start_or][i])
+        t2 = chr(game_map[y_target_or][i])
+        if (t1 == '-' or t1 == '|'):
+            distance1 += 30
         else:
-            distance += 1
+            distance1 += 1
+        if (t2 == '-' or t2 == '|'):
+            distance2 += 30
+        else:
+            distance2 += 1
     for i in range(y_start, y_target+1):
-        t = chr(game_map[i][x_target_or])
-        if (t == '-' or t == '|'):
-            distance += 130
+        t1 = chr(game_map[i][x_target_or])
+        t2 = chr(game_map[i][x_start_or])
+        if (t1 == '-' or t1 == '|'):
+            distance1 += 30
         else:
-            distance += 1
-     
-    
-    for i in range(y_start, y_target+1):
-        t = chr(game_map[i][x_start_or])
-        if (t == '-' or t == '|'):
-            distance2 += 130
-        else:
-            distance2 += 1        
-    for i in range(x_start, x_target+1):
-        t = chr(game_map[y_target_or][i])
-        if (t == '-' or t == '|'):
-            distance2 += 130
+            distance1 += 1
+        if (t2 == '-' or t2 == '|'):
+            distance2 += 30
         else:
             distance2 += 1
 
-    return min(distance, distance2)
+    return min(distance1, distance2)
 
 
 def euclidean_distance(point1: Location, point2: Location) -> float:
@@ -249,6 +262,45 @@ def floor_visited(list: List[Location]) -> List[Location]:
 
     return floor_already_visited
 
+def precondition_game_map(game_map):
+    wall_position = get_wall_positions(game_map)
+    y_limit, x_limit = game_map.shape
+    wall = ['|', '-', '{']
+    conditioned_map = np.copy(game_map)
+    for x, y in wall_position:
+        if y+2 < y_limit and chr(conditioned_map[y+1][x]) not in wall and chr(conditioned_map[y+2][x]) not in wall:
+            if check_path(conditioned_map, (x, y+1)):
+                conditioned_map[y+1][x] = ord('{')
+        if x+2 < x_limit and chr(conditioned_map[y][x+1]) not in wall and chr(conditioned_map[y][x+2]) not in wall:
+            if check_path(conditioned_map, (x+1, y)):
+                conditioned_map[y][x+1] = ord('{')
+        if y-2 >= 0 and chr(conditioned_map[y-1][x]) not in wall and chr(conditioned_map[y-2][x]) not in wall:
+            if check_path(conditioned_map, (x, y-1)):
+                conditioned_map[y-1][x] = ord('{')
+        if x-2 >= 0 and chr(conditioned_map[y][x-1]) not in wall and chr(conditioned_map[y][x-2]) not in wall:
+            if check_path(conditioned_map, (x-1, y)):
+                conditioned_map[y][x-1] = ord('{')
+    
+    return conditioned_map
+            
+
+def check_path(game_map, position):
+    x, y = position
+    y_limit, x_limit = game_map.shape
+    walkable_symbols = get_walkable_symbols()
+    if y+1 < y_limit and x+1 < x_limit and chr(game_map[y+1][x]) in walkable_symbols and chr(game_map[y][x+1]) in walkable_symbols:
+        if chr(game_map[y+1][x+1]) not in walkable_symbols:
+            return False
+    if y+1 < y_limit and x-1 >= 0 and chr(game_map[y+1][x]) in walkable_symbols and chr(game_map[y][x-1]) in walkable_symbols :
+        if chr(game_map[y+1][x-1]) not in walkable_symbols:
+            return False
+    if y-1 >= 0 and x+1 < x_limit and chr(game_map[y-1][x]) in walkable_symbols and chr(game_map[y][x+1]) in walkable_symbols :
+        if chr(game_map[y-1][x+1]) not in walkable_symbols:
+            return False
+    if y-1 >= 0 and x-1 >= 0 and chr(game_map[y-1][x]) in walkable_symbols and chr(game_map[y][x-1]) in walkable_symbols :
+        if chr(game_map[y-1][x-1]) not in walkable_symbols:
+            return False
+    return True
 
 def print_level(state):
     """
@@ -258,3 +310,10 @@ def print_level(state):
     """
     plt.imshow(state["pixel"][:, 410:840])
     plt.savefig("level.png")
+
+
+def print_chars_level(game_map):
+    for y in range(len(game_map)):
+        for x in range(len(game_map[y])):
+            print(chr(game_map[y][x]), end='')
+        print()

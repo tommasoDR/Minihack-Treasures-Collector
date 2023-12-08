@@ -1,9 +1,9 @@
 import gym
 import minihack
 import numpy as np
-import matplotlib.pyplot as plt
 import sys
 import json
+from utils import *
 from data import *
 
 
@@ -64,7 +64,7 @@ def add_random_objects(levelgen, object_info, room_type):
     for _ in range(num_generations_spins):
         np.random.shuffle(object_info)
         for i in range(len(object_info)):
-            (object_name, object_symbol, spawn_probability) = object_info[i]
+            (object_name, object_symbol, _, spawn_probability) = object_info[i]
             p = np.random.uniform()
             if p <= spawn_probability[room_type]:
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
@@ -85,5 +85,5 @@ def generate_env():
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
     env = generate_env()
-    print_level(env)
+    print_level(env.reset())
     

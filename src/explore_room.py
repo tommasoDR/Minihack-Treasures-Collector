@@ -1,7 +1,8 @@
 import random
 from utils import *
-from a_star import *#a_star
+from a_star import a_star
 from generate_room import generate_env
+import matplotlib.pyplot as plt
 from IPython import display
 
 # Trade-off between exploration and exploitation
@@ -20,9 +21,10 @@ def exhaustive_exploration(
     """
     game_map = initial_state['chars']
     starting_position = get_player_location(game_map)
-    floor_positions = get_floor_positions(initial_state)
-    game = initial_state['pixel']
-
+    conditioned_map = precondition_game_map(game_map)
+    print_chars_level(conditioned_map)
+    floor_positions = get_floor_positions(conditioned_map)
+    
     while floor_positions:
 
         # obtain floor visited (the neighbors of start)
@@ -44,15 +46,16 @@ def exhaustive_exploration(
             target = random.choice(floor_positions)
 
         # path with A* to the target location
-        path = a_star(game_map, starting_position, target, [])
+        path = a_star(conditioned_map, starting_position, target, [])
 
         # delete floors visited with the path
         neighborhood = floor_visited(path)
+
         floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
 
         actions = actions_from_path(path)
         
-        image = plt.imshow(game[:, 410:840])
+        image = plt.imshow(initial_state["pixel"][:, 410:840])
         for action in actions:
             new_state, _, _, _ = environment.step(action)
             
