@@ -282,6 +282,15 @@ def precondition_game_map(game_map):
                 conditioned_map[y][x-1] = ord('{')
     
     return conditioned_map
+
+def closer_wall_target(target, conditioned_map): 
+    walkable_symbols = get_walkable_symbols()
+    neighbors = floor_visited([target])
+    for point in neighbors:
+        x,y = point
+        simbolo = chr(conditioned_map[y][x])
+        if simbolo in walkable_symbols: 
+            return point
             
 
 def check_path(game_map, position):
