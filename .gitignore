@@ -163,3 +163,4 @@ cython_debug/
 
 # Pycharm
 .idea/
+src/__pycache__/data.cpython-310.pyc
