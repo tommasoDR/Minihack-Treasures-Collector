@@ -1,8 +1,9 @@
 import math
 from enum import Enum
 import matplotlib.pyplot as plt
-from generate_room import *
+from generate_room import  *
 from typing import Tuple, List, NewType
+
 
 Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."

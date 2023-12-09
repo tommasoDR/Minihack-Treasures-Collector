@@ -3,8 +3,44 @@ import heapq
 import numpy as np
 
 """this file implement A* algorithm for the final search of target object"""
+def compute_straight_path(conditioned_game_map, start, target):
+        
+    """
+    :param start: coordinate of the starting point
+    :param target: coordinate of the target point
 
-def a_star(map: np.ndarray, start: Location, target: Location,
+    :return: list of tuples of the straight path
+    """
+    
+    x_start, y_start = start
+    x_target, y_target = target
+
+    path = []
+    if x_start == x_target:
+        if y_start < y_target:
+            for i in range(y_start, y_target+1):
+                if(chr(conditioned_game_map[i][x_start]) in ["|", "-","{"]):
+                    return []
+                path.append((x_start, i))
+        else:
+            for i in range(y_target, y_start+1):
+                if(chr(conditioned_game_map[i][x_start]) in ["|", "-","{"]):
+                    return []
+                path.insert(0,(x_start, i))
+    elif y_start == y_target:
+        if x_start < x_target:
+            for i in range(x_start, x_target+1):
+                if(chr(conditioned_game_map[y_start][i]) in ["|", "-","{"]):
+                    return []
+                path.append((i, y_start))
+        else:
+            for i in range(x_target, x_start+1):
+                if(chr(conditioned_game_map[y_start][i]) in ["|", "-","{"]):
+                    return []
+                path.insert(0,(i, y_start))
+    return path
+
+def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
            excluded: List[Location]) -> List[Location]:
     """
     :param map: the map of the game
@@ -14,6 +50,11 @@ def a_star(map: np.ndarray, start: Location, target: Location,
             
     :return: the path as a queue from start to target as a list of tuples
     """
+    
+    path = compute_straight_path(conditioned_game_map, start, target)
+    
+    if path:
+        return path
 
     # fix the heuristic function in base of the agent's movement
     h = manhattan_distance
@@ -45,7 +86,7 @@ def a_star(map: np.ndarray, start: Location, target: Location,
         visited.append(current_node)
 
         # get the neighbors of the current node
-        neighbors = get_neighbors(map, current_node, excluded)
+        neighbors = get_neighbors(conditioned_game_map, current_node, excluded)
 
         for neighbor in neighbors:
             if neighbor not in visited:

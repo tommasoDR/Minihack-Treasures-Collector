@@ -29,16 +29,13 @@ def exhaustive_exploration(
     floor_positions = get_floor_positions(game_map)
     # print_chars_level(game_map)
     
+    # obtain floor visited (the neighbors of start)
+    neighborhood = floor_visited([starting_position])
+
+    # delete floor visited
+    floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
+    
     while floor_positions:
-
-        # obtain floor visited (the neighbors of start)
-        neighborhood = floor_visited([starting_position])
-
-        # delete floor visited
-        floor_positions = list(filter(lambda x: x not in neighborhood, floor_positions))
-
-        if not floor_positions:
-            break
 
         # generate a random number between 0 and 1
         p = random.uniform(0, 1)
@@ -69,6 +66,7 @@ def exhaustive_exploration(
         image = plt.imshow(initial_state["pixel"][:, 410:840])
         for action in actions:
             new_state, _, _, _ = environment.step(action)
+            
             image.set_data(new_state['pixel'][:, 410:840])
             display.display(plt.gcf())
             display.clear_output(wait=True)
