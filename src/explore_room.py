@@ -1,8 +1,7 @@
-from os import chroot
 import random
-from utils import *
-from a_star import a_star
-from generate_room import generate_env
+from .utils import *
+from .a_star import a_star
+from .generate_room import generate_env
 # import matplotlib.pyplot as plt
 from IPython import display
 
@@ -80,6 +79,7 @@ def exhaustive_exploration(
         starting_position = target
 
 
+# To run: python3 -m src.explore_room
 if __name__ == "__main__":
     env = generate_env()
     state = env.reset()

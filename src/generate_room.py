@@ -3,8 +3,8 @@ import minihack
 import numpy as np
 import sys
 import json
-from utils import *
-from data import *
+from .utils import *
+from .data import *
 
 
 def read_des_file(des_file: str) -> str:
@@ -127,7 +127,7 @@ def generate_env():
     return env
 
 
-# generate_env()
+# To run: python3 -m src.generate_room
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
     env = generate_env()

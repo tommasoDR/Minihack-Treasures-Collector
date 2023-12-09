@@ -1,7 +1,7 @@
 import math
 from enum import Enum
 from matplotlib import pyplot as plt
-from generate_room import *
+from .generate_room import *
 from typing import Tuple, List, NewType
 
 Location = NewType("Location", Tuple[int, int])
