@@ -9,7 +9,7 @@ from .data import *
 
 def read_des_file(des_file: str) -> str:
     """
-    Reads the des file and returns the map
+    Reads the des file and returns the map.
 
     :param des_file: the path of the des file
     :return: the map as a string
@@ -34,7 +34,7 @@ def read_des_file(des_file: str) -> str:
 
 def read_object_file(object_file) -> (list, list):
     """
-    Reads the object file and returns the list of clue objects and goal objects
+    Reads the object file and returns the list of clue objects and goal objects.
 
     :param object_file: the path of the object file
     :return: the list of clue objects and goal objects
@@ -53,7 +53,7 @@ def read_object_file(object_file) -> (list, list):
 
 def random_room_type() -> int:
     """
-    Returns a random room type
+    Returns a random room type.
 
     :return: a random room type as an integer
     """
@@ -72,7 +72,7 @@ def random_pattern_file() -> str:
 
 def add_goal_objects(levelgen, goal_objects, room_type):
     """
-    Adds the goal objects to the level generator
+    Adds the goal objects to the level generator.
 
     :param levelgen: the MiniHack level generator
     :param goal_objects: the list of goal objects
@@ -91,7 +91,7 @@ def add_goal_objects(levelgen, goal_objects, room_type):
 
 def add_random_objects(levelgen, object_info, room_type):
     """
-    Adds random objects to the level generator
+    Adds random objects to the level generator.
 
     :param levelgen: the MiniHack level generator
     :param object_info: the list of objects

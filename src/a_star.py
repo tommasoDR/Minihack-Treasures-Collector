@@ -4,10 +4,12 @@ import numpy as np
 
 """This file implements A* algorithm for the final search of target object"""
 
+forbidden_chars = ["|", "-", "{"]
+
 
 def compute_straight_path(conditioned_game_map, start: Location, target: Location):
     """
-    Compute the straight path from start to target, if it exists.
+    Computes the straight path from start to target, if it exists.
 
     :param conditioned_game_map: the map of the game with some fake walls
     :param start: coordinate of the starting point
@@ -23,23 +25,23 @@ def compute_straight_path(conditioned_game_map, start: Location, target: Locatio
     if x_start == x_target:
         if y_start < y_target:
             for i in range(y_start, y_target + 1):
-                if chr(conditioned_game_map[i][x_start]) in ["|", "-", "{"]:
+                if chr(conditioned_game_map[i][x_start]) in forbidden_chars:
                     return []
                 path.append((x_start, i))
         else:
             for i in range(y_target, y_start + 1):
-                if chr(conditioned_game_map[i][x_start]) in ["|", "-", "{"]:
+                if chr(conditioned_game_map[i][x_start]) in forbidden_chars:
                     return []
                 path.insert(0, (x_start, i))
     elif y_start == y_target:
         if x_start < x_target:
             for i in range(x_start, x_target + 1):
-                if chr(conditioned_game_map[y_start][i]) in ["|", "-", "{"]:
+                if chr(conditioned_game_map[y_start][i]) in forbidden_chars:
                     return []
                 path.append((i, y_start))
         else:
             for i in range(x_target, x_start + 1):
-                if chr(conditioned_game_map[y_start][i]) in ["|", "-", "{"]:
+                if chr(conditioned_game_map[y_start][i]) in forbidden_chars:
                     return []
                 path.insert(0, (i, y_start))
     return path
@@ -48,8 +50,10 @@ def compute_straight_path(conditioned_game_map, start: Location, target: Locatio
 def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
            excluded: List[Location]) -> List[Location]:
     """
+    Performs the A* algorithm to find the path from start to target.
+    If the path is a straight line from start to target, it is returned.
+
     :param conditioned_game_map: the map of the game with some fake walls
-    :param map: the map of the game
     :param start: the starting point as a tuple
     :param target: the target point as a tuple
     :param excluded: the list of the points that cannot be visited

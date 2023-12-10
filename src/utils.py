@@ -8,6 +8,58 @@ Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."
 
 
+class ClueObject(Enum):
+    """
+    A game object is an object that the agent has to find during the game.
+    """
+    ROCK = 0
+    EMERALD = 1
+    RUBY = 2
+    GOLD_PIECE = 3
+    OIL_LAMP = 4
+    WAX_CANDLE = 5
+    STATUE = 6
+    CORPSE = 7
+    SHURIKEN = 8
+    INVISIBILITY = 9
+
+    def to_string(self):
+        return "".join(self.name.lower().split("_"))
+
+
+class GoalObject(Enum):
+    """
+    A goal object is an object that the agent has to find during the game.
+    """
+    FIRE = 1
+    GOLD_DETECTION = 2
+    DESTROY_ARMOR = 3
+
+    def to_string(self):
+        return "".join(self.name.lower().split("_"))
+
+
+object_map = {
+    1: ClueObject.RUBY,
+    2: ClueObject.EMERALD,
+    7: ClueObject.ROCK,
+    11: ClueObject.OIL_LAMP,
+    15: ClueObject.WAX_CANDLE,
+    # "*": [GameObject.ROCK, GameObject.EMERALD, GameObject.RUBY],
+    # "(": [GameObject.WAX_CANDLE, GameObject.OIL_LAMP],
+    "$": ClueObject.GOLD_PIECE,
+    "%": ClueObject.CORPSE,
+    "k": ClueObject.STATUE,
+    "d": ClueObject.STATUE,
+    "Z": ClueObject.STATUE,
+    "F": ClueObject.STATUE,
+    ":": ClueObject.STATUE,
+    "x": ClueObject.STATUE,
+    ")": ClueObject.SHURIKEN,
+    "=": ClueObject.INVISIBILITY,
+}
+
+
 class Direction(Enum):
     """
     A possible direction of the agent.
@@ -16,10 +68,10 @@ class Direction(Enum):
     EAST = 1
     SOUTH = 2
     WEST = 3
-    NORTH_EAST = 4
-    SOUTH_EAST = 5
-    SOUTH_WEST = 6
-    NORTH_WEST = 7
+    # NORTH_EAST = 4
+    # SOUTH_EAST = 5
+    # SOUTH_WEST = 6
+    # NORTH_WEST = 7
 
 
 def allowed_moves(game_map: np.ndarray, position_element: int, excluded: List[Location]) -> bool:
