@@ -1,8 +1,11 @@
 import math
+import numpy as np
+import sys
+import json
 from enum import Enum
 from matplotlib import pyplot as plt
-from .generate_room import *
 from typing import Tuple, List, NewType
+from .data import *
 
 Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."
@@ -72,6 +75,25 @@ class Direction(Enum):
     # SOUTH_EAST = 5
     # SOUTH_WEST = 6
     # NORTH_WEST = 7
+
+
+def read_object_file(object_file) -> (list, list):
+    """
+    Reads the object file and returns the list of clue objects and goal objects.
+
+    :param object_file: the path of the object file
+    :return: the list of clue objects and goal objects
+    """
+    try:
+        with open(object_file, 'r') as file:
+            json_content = json.loads(file.read())
+            clue_objects = json_content["clue_objects"]
+            goal_objects = json_content["goal_objects"]
+    except Exception as e:
+        print("Error reading object file")
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    return clue_objects, goal_objects
 
 
 def allowed_moves(game_map: np.ndarray, position_element: int, excluded: List[Location]) -> bool:

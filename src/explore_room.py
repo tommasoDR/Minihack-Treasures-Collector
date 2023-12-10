@@ -98,7 +98,7 @@ def exhaustive_exploration(
 
                 if symbol in ["(", "*"]:
                     symbol = new_state['colors'][y][x]
-                elif symbol == "?":
+                elif symbol in ["["]:
                     pass
 
                 clue_object = object_map.get(symbol)
@@ -121,8 +121,8 @@ def exhaustive_exploration(
                     """
 
             image.set_data(new_state['pixel'][:, 410:840])
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
+            #display.display(plt.gcf())
+            #display.clear_output(wait=True)
 
         # next loop I'll start from where I arrived
         starting_position = target
@@ -130,7 +130,7 @@ def exhaustive_exploration(
 
 # To run: python3 -m src.explore_room
 if __name__ == "__main__":
-    env = generate_env()
+    env, goals_info = generate_env()
     state = env.reset()
 
     exhaustive_exploration(state, env)

@@ -11,7 +11,7 @@
                     ["oil lamp", "(", ["("], [0.68, 0.32, 0.00]],
                     ["invisibility", "=", ["="], [0.26, 0.62, 0.12]]],
     "goal_objects":
-                    [["fire", "?"],
-                    ["gold detection", "?"],
-                    ["destroy armor", "?"]]
+                    [["crystal plate mail", "["],
+                    ["banded mail", "["],
+                    ["orcish ring mail", "["]]
 }
