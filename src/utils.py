@@ -74,8 +74,8 @@ class GoalObject(Enum):
     A goal object is an object that the agent has to find during the game.
     """
     CRYSTAL_PLATE_MAIL = "crystal plate mail"
-    BANDED_MAIL = "banded mail"
-    ORCISH_RING_MAIL = "orcish ring mail"
+    BLUE_DRAGON_SCALE_MAIL = "blue dragon scale mail"
+    YELLOW_DRAGON_SCALE_MAIL = "yellow dragon scale mail"
 
     def to_string(self):
         """

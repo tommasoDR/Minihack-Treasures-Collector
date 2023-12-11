@@ -12,6 +12,6 @@
                     ["invisibility", "=", ["="], "", [0.26, 0.62, 0.12]]],
     "goal_objects":
                     [["crystal plate mail", "[", "15"],
-                    ["banded mail", "[", "6"],
-                    ["orcish ring mail", "[", "7"]]
+                    ["blue dragon scale mail", "[", "4"],
+                    ["yellow dragon scale mail", "[", "11"]]
 }
