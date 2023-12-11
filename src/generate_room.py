@@ -115,8 +115,8 @@ def generate_env():
     levelgen = minihack.LevelGenerator(map=read_des_file(room_pattern_file), lit=True, flags=("premapped",))
     room_type = random_room_type()
     clue_objects, goal_objects = read_object_file(object_file_path)
-    goals_info = add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
+    goals_info = add_goal_objects(levelgen, goal_objects, room_type)
     print(levelgen.get_des())
     env = gym.make("MiniHack-Skill-Custom-v0",
                    observation_keys=("screen_descriptions_crop", "chars", "colors", "pixel"), obs_crop_h=3,
