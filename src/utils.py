@@ -11,56 +11,105 @@ Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."
 
 
+def read_object_file(object_file) -> (list, list):
+    """
+    Reads the object file and returns the list of clue objects and goal objects.
+
+    :param object_file: the path of the object file
+    :return: the list of clue objects and goal objects
+    """
+    try:
+        with open(object_file, 'r') as file:
+            json_content = json.loads(file.read())
+            clue_objects = json_content["clue_objects"]
+            goal_objects = json_content["goal_objects"]
+    except Exception as e:
+        print("Error reading object file")
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+    return clue_objects, goal_objects
+
+
 class ClueObject(Enum):
     """
     A game object is an object that the agent has to find during the game.
     """
-    ROCK = 0
-    EMERALD = 1
-    RUBY = 2
-    GOLD_PIECE = 3
-    OIL_LAMP = 4
-    WAX_CANDLE = 5
-    STATUE = 6
-    CORPSE = 7
-    SHURIKEN = 8
-    INVISIBILITY = 9
+    ROCK = "rock"
+    EMERALD = "emerald"
+    RUBY = "ruby"
+    GOLD_PIECE = "gold piece"
+    OIL_LAMP = "oil lamp"
+    WAX_CANDLE = "wax candle"
+    STATUE = "statue"
+    CORPSE = "corpse"
+    SHURIKEN = "shuriken"
+    INVISIBILITY = "invisibility"
 
     def to_string(self):
-        return "".join(self.name.lower().split("_"))
+        """
+        Converts the ClueObject to a string.
+
+        :return: the ClueObject as a string
+        """
+        return " ".join(self.name.lower().split("_"))
+
+    @classmethod
+    def from_string(cls, label):
+        """
+        Creates an instance of ClueObject from a string.
+
+        :param label: the string to convert
+        :return: an instance of ClueObject
+        :raises ValueError: if the label is not a valid ClueObject
+        """
+        for instance in cls:
+            if instance.value == label:
+                return instance
+
+        raise ValueError(f"ClueObject {label} not found")
 
 
 class GoalObject(Enum):
     """
     A goal object is an object that the agent has to find during the game.
     """
-    FIRE = 1
-    GOLD_DETECTION = 2
-    DESTROY_ARMOR = 3
+    CRYSTAL_PLATE_MAIL = "crystal plate mail"
+    BANDED_MAIL = "banded mail"
+    ORCISH_RING_MAIL = "orcish ring mail"
 
     def to_string(self):
-        return "".join(self.name.lower().split("_"))
+        """
+        Converts the GoalObject to a string.
+
+        :return: the GoalObject as a string
+        """
+        return " ".join(self.name.lower().split("_"))
+
+    @classmethod
+    def from_string(cls, label):
+        """
+        Creates an instance of GoalObject from a string.
+
+        :param label: the string to convert
+        :return: an instance of GoalObject, if matched with the string
+        :raises ValueError: if the label is not a valid ClueObject
+        """
+        for instance in cls:
+            if instance.value == label:
+                return instance
+
+        raise ValueError(f"ClueObject {label} not found")
 
 
-object_map = {
-    1: ClueObject.RUBY,
-    2: ClueObject.EMERALD,
-    7: ClueObject.ROCK,
-    11: ClueObject.OIL_LAMP,
-    15: ClueObject.WAX_CANDLE,
-    # "*": [GameObject.ROCK, GameObject.EMERALD, GameObject.RUBY],
-    # "(": [GameObject.WAX_CANDLE, GameObject.OIL_LAMP],
-    "$": ClueObject.GOLD_PIECE,
-    "%": ClueObject.CORPSE,
-    "k": ClueObject.STATUE,
-    "d": ClueObject.STATUE,
-    "Z": ClueObject.STATUE,
-    "F": ClueObject.STATUE,
-    ":": ClueObject.STATUE,
-    "x": ClueObject.STATUE,
-    ")": ClueObject.SHURIKEN,
-    "=": ClueObject.INVISIBILITY,
-}
+# create object map
+clue_objects, goal_objects = read_object_file(object_file_path)
+object_map = {}
+for name, _, symbols, color, _ in clue_objects:
+    for symbol in symbols:
+        object_map[(symbol, color)] = ClueObject.from_string(name)
+
+for name, symbol, color in goal_objects:
+    object_map[(symbol, color)] = GoalObject.from_string(name)
 
 
 class Direction(Enum):
@@ -183,8 +232,8 @@ def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
 
 def get_walkable_symbols():
     (clue_objects, goal_objects) = read_object_file(object_file_path)
-    clue_object_symbols = [symbol for (_, _, display_symbols, _) in clue_objects for symbol in display_symbols]
-    goal_object_symbols = [object_symbol for (_, object_symbol) in goal_objects]
+    clue_object_symbols = [symbol for (_, _, display_symbols, _, _) in clue_objects for symbol in display_symbols]
+    goal_object_symbols = [object_symbol for (_, object_symbol, _) in goal_objects]
     walkable_symbols = clue_object_symbols + goal_object_symbols + ['.'] + ['@']
     return walkable_symbols
 

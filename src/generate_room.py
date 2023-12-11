@@ -54,14 +54,14 @@ def build_goals_info(goal_objects, room_type):
     """
     Builds the goals info.
 
+    :param room_type: an integer representing the room type
     :param goal_objects: the list of goal objects
-    :param goals_coordinates: the list of goal coordinates
     :return: the goals info
     """
     goals_info = []
     for i in range(len(goal_objects)):
-        (object_name, object_symbol) = goal_objects[i]
-        goals_info.append((object_name, object_symbol, "uncursed" if i == room_type else "cursed"))
+        (object_name, object_symbol, color) = goal_objects[i]
+        goals_info.append((object_name, object_symbol, color, "uncursed" if i == room_type else "cursed"))
     return goals_info
     
 
@@ -80,7 +80,7 @@ def add_goal_objects(levelgen, goal_objects, room_type):
     
     goals_info = build_goals_info(goal_objects, room_type)
     print(goals_info)
-    for (object_name, object_symbol, curse_state) in goals_info:
+    for (object_name, object_symbol, _, curse_state) in goals_info:
         levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state)
     return goals_info
 
@@ -96,7 +96,7 @@ def add_random_objects(levelgen, object_info, room_type):
     for _ in range(num_generations_spins):
         np.random.shuffle(object_info)
         for i in range(len(object_info)):
-            (object_name, object_symbol, _, spawn_probability) = object_info[i]
+            (object_name, object_symbol, _, _, spawn_probability) = object_info[i]
             p = np.random.uniform()
             if p <= spawn_probability[room_type]:
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
