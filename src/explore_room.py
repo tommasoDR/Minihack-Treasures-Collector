@@ -95,16 +95,14 @@ def exhaustive_exploration(
 
                 x, y = pos
                 symbol = chr(new_state['chars'][y][x])
+                color = ""
+                if symbol in ["(", "*", "["]:
+                    color = new_state['colors'][y][x]
 
-                if symbol in ["(", "*"]:
-                    symbol = new_state['colors'][y][x]
-                elif symbol in ["["]:
-                    pass
-
-                clue_object = object_map.get(symbol)
+                clue_object = object_map.get((symbol, color))
 
                 if clue_object is not None:
-
+                    
                     """
                     # probabilities = probabilities_map.get(clue_object.to_string())
                     print(probabilities)
