@@ -10,14 +10,8 @@ from IPython import display
 # Trade-off between exploration and exploitation
 PROB_NEAREST_UNVISITED = 1.0
 
+
 # KB = Prolog()
-
-clue_objects, goal_objects = read_object_file(object_file_path)
-probabilities_map = {}
-
-for obj in clue_objects:
-    probabilities_map[obj[0]] = obj[3]
-
 
 def exhaustive_exploration(
         initial_state,
@@ -29,6 +23,16 @@ def exhaustive_exploration(
     :param initial_state: the state of the game when starting the exploration
     :param environment: the environment of the game
     """
+
+    clue_objects, goal_objects = read_object_file(object_file_path)
+    probabilities_map = {}
+
+    for obj in clue_objects:
+        probabilities_map[obj[0]] = obj[4]
+
+    obj_seen = {}
+
+    room_probabilities = [1] * num_rooms
 
     game_map = initial_state['chars']
     starting_position = get_player_location(game_map)
@@ -102,32 +106,40 @@ def exhaustive_exploration(
                 clue_object = object_map.get((symbol, color))
 
                 if clue_object is not None:
-                    
-                    """
-                    # probabilities = probabilities_map.get(clue_object.to_string())
-                    print(probabilities)
 
-                    # call prolog
-                    KB.assertz(f"clue_object({str(clue_object)}, {str(pos)}, {str(probabilities)})")
-                    room_type = KB.query("room_type(Room_type)")["Room_type"]
-                    target_coordinates = KB.query("target_coordinates(Room_type)")["Room_type"]
-                    if room_type != -1:
-                        # target = get_room_target(room_type, game_map)
-                        # return exit_room(new_state, environment, target)
-                        # print(game_object)
-                        pass
-                    """
+                    # Check if coordinates are already present in obj_seen dictionary
+                    if (x, y) in obj_seen.keys():
+                        continue
+                    else:
+                        # Add coordinates to obj_seen dictionary
+                        obj_seen[(x, y)] = clue_object
 
+                    # Extract probabilities of the object
+                    probabilities = probabilities_map.get(clue_object.to_string())
+
+                    # Multiply the probabilities of the object (each referred to the respective room) with each of
+                    # the probabilities relating to the rooms
+                    for i in range(len(room_probabilities)):
+                        room_probabilities[i] *= probabilities[i]
+                    # Normalize the probabilities
+                    multiplier = 1 / sum(room_probabilities)
+                    normalized_probabilities = [multiplier * p for p in room_probabilities]
+
+                    # If the probability of a room is greater than 0.95, then the target is the exit of that room
+                    for i in range(len(normalized_probabilities)):
+                        if normalized_probabilities[i] >= 0.95:
+                            # print("test")
+                            return 100
             image.set_data(new_state['pixel'][:, 410:840])
-            #display.display(plt.gcf())
-            #display.clear_output(wait=True)
+            display.display(plt.gcf())
+            display.clear_output(wait=True)
 
         # next loop I'll start from where I arrived
         starting_position = target
 
 
 # To run: python3 -m src.explore_room
-if __name__ == "__main__":
+if name == "__main__":
     env, goals_info = generate_env()
     state = env.reset()
 
