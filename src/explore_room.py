@@ -1,7 +1,5 @@
 import random
 
-from pyswip import Prolog
-
 from .utils import *
 from .a_star import a_star
 from .generate_room import generate_env, read_object_file
@@ -10,8 +8,6 @@ from IPython import display
 # Trade-off between exploration and exploitation
 PROB_NEAREST_UNVISITED = 1.0
 
-
-# KB = Prolog()
 
 def exhaustive_exploration(
         initial_state,
@@ -101,46 +97,73 @@ def exhaustive_exploration(
                 symbol = chr(new_state['chars'][y][x])
                 color = ""
                 if symbol in ["(", "*", "["]:
-                    color = new_state['colors'][y][x]
+                    color = str(new_state['colors'][y][x])
 
-                clue_object = object_map.get((symbol, color))
+                # print(symbol, color)
 
-                if clue_object is not None:
+                obj = object_map.get((symbol, str(color)))
+
+                if obj is not None:
+
+                    # print(obj._class.name_)
+
+                    # print(obj)
 
                     # Check if coordinates are already present in obj_seen dictionary
                     if (x, y) in obj_seen.keys():
+                        # print("Coordinates already present in obj_seen dictionary")
                         continue
-                    else:
+
                         # Add coordinates to obj_seen dictionary
-                        obj_seen[(x, y)] = clue_object
+                    obj_seen[(x, y)] = obj
+
+                    # print(obj_seen)
 
                     # Extract probabilities of the object
-                    probabilities = probabilities_map.get(clue_object.to_string())
+                    probabilities = probabilities_map.get(obj.to_string())
+                    if probabilities is None:
+                        continue
+
+                    # print(obj.to_string())
 
                     # Multiply the probabilities of the object (each referred to the respective room) with each of
                     # the probabilities relating to the rooms
                     for i in range(len(room_probabilities)):
                         room_probabilities[i] *= probabilities[i]
+
                     # Normalize the probabilities
                     multiplier = 1 / sum(room_probabilities)
+                    # print("Multiplier: " + str(multiplier))
                     normalized_probabilities = [multiplier * p for p in room_probabilities]
+
+                    #print("Normalized probabilities: " + str(normalized_probabilities))
 
                     # If the probability of a room is greater than 0.95, then the target is the exit of that room
                     for i in range(len(normalized_probabilities)):
                         if normalized_probabilities[i] >= 0.95:
-                            # print("test")
-                            return 100
+                            #print("We are in room " + str(i))
+                            return i
             image.set_data(new_state['pixel'][:, 410:840])
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
+            # display.display(plt.gcf())
+            # display.clear_output(wait=True)
 
         # next loop I'll start from where I arrived
         starting_position = target
 
+    return normalized_probabilities.index(max(normalized_probabilities))    
+
 
 # To run: python3 -m src.explore_room
-if name == "__main__":
-    env, goals_info = generate_env()
-    state = env.reset()
+if __name__ == "__main__":
+    win = 0
+    for i in range(100):
+        env, goals_info = generate_env()
+        state = env.reset()
+        #print_level(state)
+        #print(goals_info)
+        i = exhaustive_exploration(state, env)
 
-    exhaustive_exploration(state, env)
+        if goals_info[i][3] == 'uncursed':
+            win+=1
+    
+    print(win)
