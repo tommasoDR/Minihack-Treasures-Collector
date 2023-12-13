@@ -1,4 +1,5 @@
 import random
+from time import sleep
 
 from .utils import *
 from .a_star import a_star
@@ -7,6 +8,28 @@ from IPython import display
 
 # Trade-off between exploration and exploitation
 PROB_NEAREST_UNVISITED = 1.0
+
+
+def exit_room(state, image, environment, target_coordinates: Location):
+    """
+    Exits the room, going to the target coordinates.
+
+    :param state: the current state of the game
+    :param environment: the environment of the game
+    :param target_coordinates: the coordinates of the target
+    :return: the index of the room that has been exited
+    """
+    # pause the program for two seconds
+    sleep(2)
+    current_player_location = get_player_location(state['chars'])
+    path = a_star(state['chars'], current_player_location, target_coordinates, [])
+    actions = actions_from_path(path)
+    for action in actions:
+        state, _, _, _ = environment.step(action)
+        image.set_data(state['pixel'][:, 410:840])
+        display.display(plt.gcf())
+        sleep(0.2)
+        display.clear_output(wait=True)
 
 
 def exhaustive_exploration(
@@ -29,6 +52,7 @@ def exhaustive_exploration(
     obj_seen = {}
 
     room_probabilities = [1] * num_rooms
+    normalized_probabilities = [1 / num_rooms] * num_rooms
 
     game_map = initial_state['chars']
     starting_position = get_player_location(game_map)
@@ -46,8 +70,6 @@ def exhaustive_exploration(
 
     # delete floor visited
     floor_positions = list(filter(lambda position: position not in neighborhood, floor_positions))
-
-    room_type = -1
 
     while floor_positions:
 
@@ -105,26 +127,20 @@ def exhaustive_exploration(
 
                 if obj is not None:
 
-                    # print(obj._class.name_)
-
-                    # print(obj)
-
                     # Check if coordinates are already present in obj_seen dictionary
                     if (x, y) in obj_seen.keys():
                         # print("Coordinates already present in obj_seen dictionary")
                         continue
 
-                        # Add coordinates to obj_seen dictionary
+                    # Add coordinates to obj_seen dictionary
                     obj_seen[(x, y)] = obj
-
-                    # print(obj_seen)
 
                     # Extract probabilities of the object
                     probabilities = probabilities_map.get(obj.to_string())
+
+                    # Found a goal object
                     if probabilities is None:
                         continue
-
-                    # print(obj.to_string())
 
                     # Multiply the probabilities of the object (each referred to the respective room) with each of
                     # the probabilities relating to the rooms
@@ -133,37 +149,60 @@ def exhaustive_exploration(
 
                     # Normalize the probabilities
                     multiplier = 1 / sum(room_probabilities)
+
                     # print("Multiplier: " + str(multiplier))
                     normalized_probabilities = [multiplier * p for p in room_probabilities]
 
-                    #print("Normalized probabilities: " + str(normalized_probabilities))
-
                     # If the probability of a room is greater than 0.95, then the target is the exit of that room
-                    for i in range(len(normalized_probabilities)):
-                        if normalized_probabilities[i] >= 0.95:
-                            #print("We are in room " + str(i))
-                            return i
+                    for room in range(len(normalized_probabilities)):
+
+                        if normalized_probabilities[room] >= 0.95:
+
+                            object_name = GoalObject.from_string(goal_objects[room][0])
+                            # check if target_room is in values of the obj_seen dictionary
+                            if object_name not in obj_seen.values():
+                                break
+
+                            # get coordinates of the target room
+                            target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
+
+                            # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
+                            exit_room(new_state, image, environment, target_coordinates)
+                            return room
+
             image.set_data(new_state['pixel'][:, 410:840])
-            # display.display(plt.gcf())
-            # display.clear_output(wait=True)
+            display.display(plt.gcf())
+            sleep(0.2)
+            display.clear_output(wait=True)
 
         # next loop I'll start from where I arrived
         starting_position = target
 
-    return normalized_probabilities.index(max(normalized_probabilities))    
+    # print(obj_seen, floor_positions)
+    room = normalized_probabilities.index(max(normalized_probabilities))
+    object_name = GoalObject.from_string(goal_objects[room][0])
+    if object_name not in obj_seen.values():
+        print("The target object is not in the room..., the missing object is: " + object_name.name)
+        return room
+    target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
+
+    # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
+    exit_room(new_state, image, environment, target_coordinates)
+    return room
 
 
 # To run: python3 -m src.explore_room
 if __name__ == "__main__":
     win = 0
-    for i in range(100):
+    num_redo = 250
+    for _ in range(num_redo):
         env, goals_info = generate_env()
         state = env.reset()
-        #print_level(state)
-        #print(goals_info)
+        # print_level(state)
+        # print(goals_info)
         i = exhaustive_exploration(state, env)
 
         if goals_info[i][3] == 'uncursed':
-            win+=1
-    
-    print(win)
+            win += 1
+
+    print(win, num_redo)
