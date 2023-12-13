@@ -79,7 +79,7 @@ def add_goal_objects(levelgen, goal_objects, room_type):
         sys.exit(1)
     
     goals_info = build_goals_info(goal_objects, room_type)
-    print(goals_info)
+    # print(goals_info)
     for (object_name, object_symbol, _, curse_state) in goals_info:
         levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state)
     return goals_info
@@ -112,12 +112,14 @@ def generate_env():
     :return: the MiniHack environment (type: gym.Env)
     """
     room_pattern_file = random_pattern_file()
+    # room_pattern_file = room_pattern_path.format(3)
     levelgen = minihack.LevelGenerator(map=read_des_file(room_pattern_file), lit=True, flags=("premapped",))
     room_type = random_room_type()
+    # room_type = 2
     clue_objects, goal_objects = read_object_file(object_file_path)
-    goals_info = add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
-    #print(levelgen.get_des())
+    goals_info = add_goal_objects(levelgen, goal_objects, room_type)
+    # print(levelgen.get_des())
     env = gym.make("MiniHack-Skill-Custom-v0",
                    observation_keys=("screen_descriptions_crop", "chars", "colors", "pixel"), obs_crop_h=3,
                    obs_crop_w=3, max_episode_steps=10000, autopickup=False, des_file=levelgen.get_des())
