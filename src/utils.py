@@ -10,7 +10,6 @@ from .data import *
 Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."
 
-
 def read_object_file(object_file) -> (list, list):
     """
     Reads the object file and returns the list of clue objects and goal objects.
@@ -29,6 +28,15 @@ def read_object_file(object_file) -> (list, list):
         sys.exit(1)
     return clue_objects, goal_objects
 
+def get_walkable_symbols():
+    (clue_objects, goal_objects) = read_object_file(object_file_path)
+    clue_object_symbols = [symbol for (_, _, display_symbols, _, _) in clue_objects for symbol in display_symbols]
+    goal_object_symbols = [object_symbol for (_, object_symbol, _) in goal_objects]
+    walkable_symbols = clue_object_symbols + goal_object_symbols + ['.'] + ['@'] + ['<']
+    return walkable_symbols
+
+walkable_symbols = get_walkable_symbols()
+
 
 class ClueObject(Enum):
     """
@@ -40,7 +48,7 @@ class ClueObject(Enum):
     GOLD_PIECE = "gold piece"
     OIL_LAMP = "oil lamp"
     WAX_CANDLE = "wax candle"
-    STATUE = "statue"
+    CHEST = "chest"
     CORPSE = "corpse"
     SHURIKEN = "shuriken"
     INVISIBILITY = "invisibility"
@@ -145,20 +153,18 @@ def read_object_file(object_file) -> (list, list):
     return clue_objects, goal_objects
 
 
-def allowed_moves(game_map: np.ndarray, position_element: int, excluded: List[Location]) -> bool:
+def is_walkable(game_map: np.ndarray, position_element: int) -> bool:
     """
     :param game_map: the map of the game
     :param position_element: a tuple that contains a position on the map
     :param excluded: the list of the points that cannot be visited
     :return: True if the position is allowed, False otherwise
     """
-
     x, y = position_element
-    obstacles = ["-", "|"]
-    return (chr(game_map[y, x]) not in obstacles) and (position_element not in excluded)
+    return chr(game_map[y, x]) in walkable_symbols
 
 
-def get_neighbors_exclude(game_map: np.ndarray, current: Location, excluded: List[Location]) -> List[Location]:
+def get_walkable_neighbors(game_map: np.ndarray, current: Location) -> List[Location]:
     """
     Create the list of the neighbors of the current position.
     A neighbor is a position that the agent
@@ -173,29 +179,29 @@ def get_neighbors_exclude(game_map: np.ndarray, current: Location, excluded: Lis
     neighbors = []
     x, y = current
     # North
-    if y - 1 > 0 and allowed_moves(game_map, (x, y - 1), excluded):
+    if y - 1 >= 0 and is_walkable(game_map, (x, y - 1)):
         neighbors.append((x, y - 1))
     # East
-    if x + 1 < x_limit and allowed_moves(game_map, (x + 1, y), excluded):
+    if x + 1 < x_limit and is_walkable(game_map, (x + 1, y)):
         neighbors.append((x + 1, y))
     # South
-    if y + 1 < y_limit and allowed_moves(game_map, (x, y + 1), excluded):
+    if y + 1 < y_limit and is_walkable(game_map, (x, y + 1)):
         neighbors.append((x, y + 1))
     # West
-    if x - 1 > 0 and allowed_moves(game_map, (x - 1, y), excluded):
+    if x - 1 >= 0 and is_walkable(game_map, (x - 1, y)):
         neighbors.append((x - 1, y))
     """
     # North-est
-    if y - 1 > 0 and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y - 1), excluded):
+    if y - 1 >= 0 and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y - 1)):
         neighbors.append((x + 1, y - 1))
     # North-west
-    if y - 1 > 0 and x - 1 > 0 and allowed_moves(game_map, (x - 1, y - 1), excluded):
+    if y - 1 >= 0 and x - 1 >= 0 and allowed_moves(game_map, (x - 1, y - 1)):
         neighbors.append((x - 1, y - 1))
     # South-est
-    if y + 1 < y_limit and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y + 1), excluded):
+    if y + 1 < y_limit and x + 1 < x_limit and allowed_moves(game_map, (x + 1, y + 1)):
         neighbors.append((x + 1, y + 1))
     # South-west
-    if y + 1 < y_limit and x - 1 > 0 and allowed_moves(game_map, (x - 1, y + 1), excluded):
+    if y + 1 < y_limit and x - 1 >= 0 and allowed_moves(game_map, (x - 1, y + 1)):
         neighbors.append((x - 1, y + 1))
     """
     return neighbors
@@ -230,13 +236,6 @@ def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
     return x[0], y[0]
 
 
-def get_walkable_symbols():
-    (clue_objects, goal_objects) = read_object_file(object_file_path)
-    clue_object_symbols = [symbol for (_, _, display_symbols, _, _) in clue_objects for symbol in display_symbols]
-    goal_object_symbols = [object_symbol for (_, object_symbol, _) in goal_objects]
-    walkable_symbols = clue_object_symbols + goal_object_symbols + ['.'] + ['@']
-    return walkable_symbols
-
 
 def get_floor_positions(game_map) -> List[Location]:
     """
@@ -247,7 +246,6 @@ def get_floor_positions(game_map) -> List[Location]:
     """
 
     floor_positions = []
-    walkable_symbols = get_walkable_symbols()
     for y in range(len(game_map)):
         for x in range(len(game_map[y])):
             if chr(game_map[y][x]) in walkable_symbols:
@@ -262,11 +260,11 @@ def get_wall_positions(game_map) -> List[Location]:
     :param game_map: the map of the game
     :return: the list of the wall positions
     """
-    wall = ['|', '-']
+
     wall_positions = []
     for y in range(len(game_map)):
         for x in range(len(game_map[y])):
-            if chr(game_map[y][x]) in wall:
+            if chr(game_map[y][x]) in real_walls:
                 wall_positions.append((x, y))
     return wall_positions
 
@@ -287,10 +285,12 @@ def get_direction(x_start, y_start, x_target, y_target) -> Direction:
         return Direction.NORTH if y_start > y_target else Direction.SOUTH
     elif y_start == y_target:
         return Direction.WEST if x_start > x_target else Direction.EAST
+        """
     elif x_start > x_target:
         return Direction.NORTH_WEST if y_start > y_target else Direction.SOUTH_WEST
     elif x_start < x_target:
         return Direction.NORTH_EAST if y_start > y_target else Direction.SOUTH_EAST
+    """
     else:
         raise ValueError("The two points are on the same line or column")
 
@@ -316,7 +316,7 @@ def TFFFM_distance(game_map, start: Location, target: Location) -> int:
     """
     Custom distance between two points. It is a slightly modified version of the Manhattan distance.
     It counts with more penalty a path that crosses a wall.
-    By Tommaso, Francesco, Francesc, Fabrizio, Marco.
+    By Tommaso, Francesco, Francesco, Fabrizio, Marco.
 
     :param game_map: the map of the game
     :param start: the starting point
@@ -331,7 +331,7 @@ def TFFFM_distance(game_map, start: Location, target: Location) -> int:
         :param symbol: the symbol to check
         :return: 30 if the symbol is a wall, 1 otherwise
         """
-        return 30 if symbol == '-' or symbol == '|' else 1
+        return 8 if symbol in real_walls else 1
 
     distance1 = 0
     distance2 = 0
@@ -402,24 +402,24 @@ def diagonal_distance(point1: Location, point2: Location) -> float:
 
 def get_neighbors(list: List[Location]) -> List[Location]:
     """
-    Given a list of points, returns the list of the neighbor points, based on the agent FOV.
+    Given a list of cells, returns the list of the neighbor cells, based on the agent FOV.
 
-    :param list: a list of points as a list of tuples
-    :return: the list of the neighbor points as a list of tuples
+    :param list: a list of cells as a list of tuples
+    :return: the list of the neighbor cells as a list of tuples
     """
-    floor_already_visited = []
+    neighbors = []
     for x, y in list:
-        floor_already_visited.append((x, y))
-        floor_already_visited.append((x - 1, y - 1))
-        floor_already_visited.append((x - 1, y))
-        floor_already_visited.append((x - 1, y + 1))
-        floor_already_visited.append((x, y + 1))
-        floor_already_visited.append((x + 1, y + 1))
-        floor_already_visited.append((x + 1, y))
-        floor_already_visited.append((x + 1, y - 1))
-        floor_already_visited.append((x, y - 1))
+        neighbors.append((x, y + 1))
+        neighbors.append((x, y))
+        neighbors.append((x, y - 1))
+        neighbors.append((x - 1, y + 1))
+        neighbors.append((x - 1, y))
+        neighbors.append((x - 1, y - 1))
+        neighbors.append((x + 1, y + 1))
+        neighbors.append((x + 1, y))
+        neighbors.append((x + 1, y - 1))
 
-    return floor_already_visited
+    return neighbors
 
 
 def precondition_game_map(game_map):
@@ -431,42 +431,24 @@ def precondition_game_map(game_map):
     """
     wall_position = get_wall_positions(game_map)
     y_limit, x_limit = game_map.shape
-    wall = ['|', '-', '{']
     conditioned_map = np.copy(game_map)
     for x, y in wall_position:
-        if y + 2 < y_limit and chr(conditioned_map[y + 1][x]) not in wall and chr(
-                conditioned_map[y + 2][x]) not in wall:
+        if y + 2 < y_limit and chr(conditioned_map[y + 1][x]) not in all_walls and chr(
+                conditioned_map[y + 2][x]) not in all_walls:
             if check_path(conditioned_map, (x, y + 1)):
                 conditioned_map[y + 1][x] = ord('{')
-        if x + 2 < x_limit and chr(conditioned_map[y][x + 1]) not in wall and chr(
-                conditioned_map[y][x + 2]) not in wall:
+        if x + 2 < x_limit and chr(conditioned_map[y][x + 1]) not in all_walls and chr(
+                conditioned_map[y][x + 2]) not in all_walls:
             if check_path(conditioned_map, (x + 1, y)):
                 conditioned_map[y][x + 1] = ord('{')
-        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in wall and chr(conditioned_map[y - 2][x]) not in wall:
+        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in all_walls and chr(conditioned_map[y - 2][x]) not in all_walls:
             if check_path(conditioned_map, (x, y - 1)):
                 conditioned_map[y - 1][x] = ord('{')
-        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in wall and chr(conditioned_map[y][x - 2]) not in wall:
+        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in all_walls and chr(conditioned_map[y][x - 2]) not in all_walls:
             if check_path(conditioned_map, (x - 1, y)):
                 conditioned_map[y][x - 1] = ord('{')
 
     return conditioned_map
-
-
-def closest_wall_target(target, conditioned_map):
-    """
-    Given a target, returns the closest walkable point to the target.
-
-    :param target: the target point
-    :param conditioned_map: the map of the game with fake walls
-    :return:
-    """
-    walkable_symbols = get_walkable_symbols()
-    neighbors = get_neighbors([target])
-    for point in neighbors:
-        x, y = point
-        symbol = chr(conditioned_map[y][x])
-        if symbol in walkable_symbols:
-            return point
 
 
 def check_path(game_map, position: Location) -> bool:
@@ -480,7 +462,6 @@ def check_path(game_map, position: Location) -> bool:
     """
     x, y = position
     y_limit, x_limit = game_map.shape
-    walkable_symbols = get_walkable_symbols()
     if y + 1 < y_limit and x + 1 < x_limit and chr(game_map[y + 1][x]) in walkable_symbols and chr(
             game_map[y][x + 1]) in walkable_symbols:
         if chr(game_map[y + 1][x + 1]) not in walkable_symbols:
@@ -499,6 +480,21 @@ def check_path(game_map, position: Location) -> bool:
             return False
     return True
 
+
+def closest_target_to_wall(target, conditioned_map):
+    """
+    Given a target, returns the closest walkable cell to the target.
+
+    :param target: the target cell
+    :param conditioned_map: the map of the game with fake walls
+    :return:
+    """
+    neighbors = get_neighbors([target])
+    for cell in neighbors:
+        x, y = cell
+        if chr(conditioned_map[y][x]) in walkable_symbols:
+            return cell
+    raise ValueError("No walkable cell found")
 
 def print_level(state):
     """

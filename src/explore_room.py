@@ -20,15 +20,14 @@ def exit_room(state, image, environment, target_coordinates: Location):
     :return: the index of the room that has been exited
     """
     # pause the program for two seconds
-    sleep(2)
+    #sleep(2)
     current_player_location = get_player_location(state['chars'])
     path = a_star(state['chars'], current_player_location, target_coordinates, [])
     actions = actions_from_path(path)
     for action in actions:
         state, _, _, _ = environment.step(action)
         image.set_data(state['pixel'][:, 410:840])
-        display.display(plt.gcf())
-        sleep(0.2)
+        #display.display(plt.gcf())
         display.clear_output(wait=True)
 
 
@@ -59,7 +58,6 @@ def exhaustive_exploration(
 
     # map with fake walls
     conditioned_map = precondition_game_map(game_map)
-    # print_chars_level(conditioned_map)
 
     # I consider imaginary walls as places to visit (use game_map)
     floor_positions = get_floor_positions(game_map)
@@ -88,9 +86,10 @@ def exhaustive_exploration(
         symbol = chr(conditioned_map[y][x])
 
         # the target is the fake wall
-        if symbol == '{':
+        if symbol == "{":
             # the target is the closest walkable point to the fake wall target
-            target = closest_wall_target(target, conditioned_map)
+            target = closest_target_to_wall(target, conditioned_map)
+
 
         # path with A* to the target location
         path = a_star(conditioned_map, starting_position, target, [])
@@ -171,24 +170,23 @@ def exhaustive_exploration(
                             return room
 
             image.set_data(new_state['pixel'][:, 410:840])
-            display.display(plt.gcf())
-            sleep(0.2)
+            #display.display(plt.gcf())
             display.clear_output(wait=True)
 
         # next loop I'll start from where I arrived
         starting_position = target
 
     # print(obj_seen, floor_positions)
-    room = normalized_probabilities.index(max(normalized_probabilities))
-    object_name = GoalObject.from_string(goal_objects[room][0])
+    guessed_room = normalized_probabilities.index(max(normalized_probabilities))
+    object_name = GoalObject.from_string(goal_objects[guessed_room][0])
     if object_name not in obj_seen.values():
         print("The target object is not in the room..., the missing object is: " + object_name.name)
-        return room
+        return guessed_room
     target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
 
     # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
     exit_room(new_state, image, environment, target_coordinates)
-    return room
+    return guessed_room
 
 
 # To run: python3 -m src.explore_room

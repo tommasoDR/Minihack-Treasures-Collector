@@ -46,7 +46,7 @@ def random_pattern_file() -> str:
 
     :return: a random pattern file path as a string
     """
-    pattern = np.random.randint(1, num_patterns + 1)
+    pattern = 4 #np.random.randint(1, num_patterns + 1)
     return room_pattern_path.format(pattern)
 
 
@@ -81,7 +81,12 @@ def add_goal_objects(levelgen, goal_objects, room_type):
     goals_info = build_goals_info(goal_objects, room_type)
     # print(goals_info)
     for (object_name, object_symbol, _, curse_state) in goals_info:
+        if curse_state == "uncursed":
+            (object_name_g, object_symbol_g, _, curse_state_g) = (object_name, object_symbol, _, curse_state)
+            continue
         levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state)
+    # Avoid bug of overwrite objects
+    levelgen.add_object(name=object_name_g, symbol=object_symbol_g, place=None, cursestate=curse_state_g)
     return goals_info
 
 
@@ -123,6 +128,7 @@ def generate_env():
     env = gym.make("MiniHack-Skill-Custom-v0",
                    observation_keys=("screen_descriptions_crop", "chars", "colors", "pixel"), obs_crop_h=3,
                    obs_crop_w=3, max_episode_steps=10000, autopickup=False, des_file=levelgen.get_des())
+
     return env, goals_info
 
 

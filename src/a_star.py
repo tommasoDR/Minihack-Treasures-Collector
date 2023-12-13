@@ -1,10 +1,9 @@
 from .utils import *
 import heapq
 import numpy as np
+from .data import *
 
 """This file implements A* algorithm for the final search of target object"""
-
-forbidden_chars = ["|", "-", "{"]
 
 
 def compute_straight_path(conditioned_game_map, start: Location, target: Location):
@@ -25,23 +24,23 @@ def compute_straight_path(conditioned_game_map, start: Location, target: Locatio
     if x_start == x_target:
         if y_start < y_target:
             for i in range(y_start, y_target + 1):
-                if chr(conditioned_game_map[i][x_start]) in forbidden_chars:
+                if chr(conditioned_game_map[i][x_start]) in all_walls:
                     return []
                 path.append((x_start, i))
         else:
             for i in range(y_target, y_start + 1):
-                if chr(conditioned_game_map[i][x_start]) in forbidden_chars:
+                if chr(conditioned_game_map[i][x_start]) in all_walls:
                     return []
                 path.insert(0, (x_start, i))
     elif y_start == y_target:
         if x_start < x_target:
             for i in range(x_start, x_target + 1):
-                if chr(conditioned_game_map[y_start][i]) in forbidden_chars:
+                if chr(conditioned_game_map[y_start][i]) in all_walls:
                     return []
                 path.append((i, y_start))
         else:
             for i in range(x_target, x_start + 1):
-                if chr(conditioned_game_map[y_start][i]) in forbidden_chars:
+                if chr(conditioned_game_map[y_start][i]) in all_walls:
                     return []
                 path.insert(0, (i, y_start))
     return path
@@ -96,7 +95,7 @@ def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
         visited.append(current_node)
 
         # get the neighbors of the current node
-        neighbors = get_neighbors_exclude(conditioned_game_map, current_node, excluded)
+        neighbors = get_walkable_neighbors(conditioned_game_map, current_node)
 
         for neighbor in neighbors:
             if neighbor not in visited:
@@ -111,6 +110,8 @@ def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
 
                 support[neighbor] = current_g + 1
                 heapq.heappush(not_visited, (f_neighbor, (neighbor, current_g + 1)))
-
-    print("Target node not found!")
-    return None
+    
+    conditioned_game_map[start[1], start[0]] = ord("S")
+    conditioned_game_map[target[1], target[0]] = ord("T")
+    print_chars_level(conditioned_game_map)
+    raise Exception("Target not found")

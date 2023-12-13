@@ -13,3 +13,8 @@ object_file_path = project_folder_path + object_file_path
 num_rooms = 3
 num_patterns = 4
 num_generations_spins = 2
+
+
+##### CONSTANT SYMBOLS #####
+all_walls = ["|", "-", "{"]
+real_walls = ["|", "-"]
