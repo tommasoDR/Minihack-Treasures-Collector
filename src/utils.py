@@ -430,23 +430,24 @@ def precondition_game_map(game_map):
     :return: the map of the game with fake walls
     """
     wall_position = get_wall_positions(game_map)
+    obstacles = all_walls + ['@']
     y_limit, x_limit = game_map.shape
     conditioned_map = np.copy(game_map)
     for x, y in wall_position:
-        if y + 2 < y_limit and chr(conditioned_map[y + 1][x]) not in all_walls and chr(
-                conditioned_map[y + 2][x]) not in all_walls:
+        if y + 2 < y_limit and chr(conditioned_map[y + 1][x]) not in obstacles and chr(
+                conditioned_map[y + 2][x]) not in obstacles:
             if check_path(conditioned_map, (x, y + 1)):
-                conditioned_map[y + 1][x] = ord('{')
-        if x + 2 < x_limit and chr(conditioned_map[y][x + 1]) not in all_walls and chr(
-                conditioned_map[y][x + 2]) not in all_walls:
+                conditioned_map[y + 1][x] = ord(conditioning_symbol)
+        if x + 2 < x_limit and chr(conditioned_map[y][x + 1]) not in obstacles and chr(
+                conditioned_map[y][x + 2]) not in obstacles:
             if check_path(conditioned_map, (x + 1, y)):
-                conditioned_map[y][x + 1] = ord('{')
-        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in all_walls and chr(conditioned_map[y - 2][x]) not in all_walls:
+                conditioned_map[y][x + 1] = ord(conditioning_symbol)
+        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in obstacles and chr(conditioned_map[y - 2][x]) not in obstacles:
             if check_path(conditioned_map, (x, y - 1)):
-                conditioned_map[y - 1][x] = ord('{')
-        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in all_walls and chr(conditioned_map[y][x - 2]) not in all_walls:
+                conditioned_map[y - 1][x] = ord(conditioning_symbol)
+        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in obstacles and chr(conditioned_map[y][x - 2]) not in obstacles:
             if check_path(conditioned_map, (x - 1, y)):
-                conditioned_map[y][x - 1] = ord('{')
+                conditioned_map[y][x - 1] = ord(conditioning_symbol)
 
     return conditioned_map
 

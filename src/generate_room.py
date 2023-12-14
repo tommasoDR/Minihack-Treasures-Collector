@@ -46,7 +46,7 @@ def random_pattern_file() -> str:
 
     :return: a random pattern file path as a string
     """
-    pattern = 4 #np.random.randint(1, num_patterns + 1)
+    pattern = np.random.randint(1, num_patterns + 1)
     return room_pattern_path.format(pattern)
 
 

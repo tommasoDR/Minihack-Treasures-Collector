@@ -86,7 +86,7 @@ def exhaustive_exploration(
         symbol = chr(conditioned_map[y][x])
 
         # the target is the fake wall
-        if symbol == "{":
+        if symbol == conditioning_symbol:
             # the target is the closest walkable point to the fake wall target
             target = closest_target_to_wall(target, conditioned_map)
 
@@ -155,7 +155,7 @@ def exhaustive_exploration(
                     # If the probability of a room is greater than 0.95, then the target is the exit of that room
                     for room in range(len(normalized_probabilities)):
 
-                        if normalized_probabilities[room] >= 0.95:
+                        if normalized_probabilities[room] >= probability_threshold:
 
                             object_name = GoalObject.from_string(goal_objects[room][0])
                             # check if target_room is in values of the obj_seen dictionary
@@ -192,7 +192,7 @@ def exhaustive_exploration(
 # To run: python3 -m src.explore_room
 if __name__ == "__main__":
     win = 0
-    num_redo = 250
+    num_redo = 400
     for _ in range(num_redo):
         env, goals_info = generate_env()
         state = env.reset()
