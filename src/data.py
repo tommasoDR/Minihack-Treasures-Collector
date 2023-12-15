@@ -13,3 +13,9 @@ object_file_path = project_folder_path + object_file_path
 num_rooms = 3
 num_patterns = 4
 num_generations_spins = 2
+probability_threshold = 0.95
+
+##### CONSTANT SYMBOLS #####
+all_walls = ["|", "-", "{"]
+real_walls = ["|", "-"]
+conditioning_symbol = "{"

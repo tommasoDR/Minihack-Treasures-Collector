@@ -2,14 +2,13 @@ import gym
 import minihack
 import numpy as np
 import sys
-import json
 from .utils import *
 from .data import *
 
 
 def read_des_file(des_file: str) -> str:
     """
-    Reads the des file and returns the map
+    Reads the des file and returns the map.
 
     :param des_file: the path of the des file
     :return: the map as a string
@@ -32,28 +31,9 @@ def read_des_file(des_file: str) -> str:
     return map_content
 
 
-def read_object_file(object_file) -> (list, list):
-    """
-    Reads the object file and returns the list of clue objects and goal objects
-
-    :param object_file: the path of the object file
-    :return: the list of clue objects and goal objects
-    """
-    try:
-        with open(object_file, 'r') as file:
-            json_content = json.loads(file.read())
-            clue_objects = json_content["clue_objects"]
-            goal_objects = json_content["goal_objects"]
-    except Exception as e:
-        print("Error reading object file")
-        print(str(e), file=sys.stderr)
-        sys.exit(1)
-    return clue_objects, goal_objects
-
-
 def random_room_type() -> int:
     """
-    Returns a random room type
+    Returns a random room type.
 
     :return: a random room type as an integer
     """
@@ -70,28 +50,49 @@ def random_pattern_file() -> str:
     return room_pattern_path.format(pattern)
 
 
+def build_goals_info(goal_objects, room_type):
+    """
+    Builds the goals info.
+
+    :param room_type: an integer representing the room type
+    :param goal_objects: the list of goal objects
+    :return: the goals info
+    """
+    goals_info = []
+    for i in range(len(goal_objects)):
+        (object_name, object_symbol, color) = goal_objects[i]
+        goals_info.append((object_name, object_symbol, color, "uncursed" if i == room_type else "cursed"))
+    return goals_info
+    
+
 def add_goal_objects(levelgen, goal_objects, room_type):
     """
-    Adds the goal objects to the level generator
+    Adds the goal objects to the level generator.
 
     :param levelgen: the MiniHack level generator
     :param goal_objects: the list of goal objects
     :param room_type: the type of the room
     """
+   
     if len(goal_objects) != num_rooms:
         print("Number of goal objects must be equal to number of rooms")
         sys.exit(1)
-    curse_state = ["cursed" for i in range(len(goal_objects))]
-    curse_state[room_type] = "uncursed"
-    i = 0
-    for (object_name, object_symbol) in goal_objects:
-        levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state[i])
-        i += 1
+    
+    goals_info = build_goals_info(goal_objects, room_type)
+    # print(goals_info)
+    for (object_name, object_symbol, _, curse_state) in goals_info:
+        if curse_state == "uncursed":
+            (object_name_g, object_symbol_g, _, curse_state_g) = (object_name, object_symbol, _, curse_state)
+            continue
+        levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=curse_state)
+    # Avoid bug of overwrite objects
+    levelgen.add_object(name=object_name_g, symbol=object_symbol_g, place=None, cursestate=curse_state_g)
+    return goals_info
 
 
 def add_random_objects(levelgen, object_info, room_type):
     """
-    Adds random objects to the level generator
+    Adds random objects to the level generator.
 
     :param levelgen: the MiniHack level generator
     :param object_info: the list of objects
@@ -100,7 +101,7 @@ def add_random_objects(levelgen, object_info, room_type):
     for _ in range(num_generations_spins):
         np.random.shuffle(object_info)
         for i in range(len(object_info)):
-            (object_name, object_symbol, _, spawn_probability) = object_info[i]
+            (object_name, object_symbol, _, _, spawn_probability) = object_info[i]
             p = np.random.uniform()
             if p <= spawn_probability[room_type]:
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
@@ -116,19 +117,23 @@ def generate_env():
     :return: the MiniHack environment (type: gym.Env)
     """
     room_pattern_file = random_pattern_file()
+    # room_pattern_file = room_pattern_path.format(3)
     levelgen = minihack.LevelGenerator(map=read_des_file(room_pattern_file), lit=True, flags=("premapped",))
     room_type = random_room_type()
+    # room_type = 2
     clue_objects, goal_objects = read_object_file(object_file_path)
-    add_goal_objects(levelgen, goal_objects, room_type)
     add_random_objects(levelgen, clue_objects, room_type)
+    goals_info = add_goal_objects(levelgen, goal_objects, room_type)
+    # print(levelgen.get_des())
     env = gym.make("MiniHack-Skill-Custom-v0",
                    observation_keys=("screen_descriptions_crop", "chars", "colors", "pixel"), obs_crop_h=3,
                    obs_crop_w=3, max_episode_steps=10000, autopickup=False, des_file=levelgen.get_des())
-    return env
+
+    return env, goals_info
 
 
 # To run: python3 -m src.generate_room
 if __name__ == "__main__":
     np.set_printoptions(threshold=sys.maxsize)
-    env = generate_env()
+    env, goals_info = generate_env()
     print_level(env.reset())
