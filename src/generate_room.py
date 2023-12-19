@@ -40,13 +40,14 @@ def random_room_type() -> int:
     return np.random.randint(0, num_rooms)
 
 
-def random_pattern_file() -> str:
+def random_pattern_file(pattern=-1) -> str:
     """
     Returns a random pattern file path
 
     :return: a random pattern file path as a string
     """
-    pattern = np.random.randint(1, num_patterns + 1)
+    if pattern == -1:
+        pattern = np.random.randint(1, num_patterns + 1)
     return room_pattern_path.format(pattern)
 
 
@@ -107,7 +108,7 @@ def add_random_objects(levelgen, object_info, room_type):
                 levelgen.add_object(name=object_name, symbol=object_symbol, place=None, cursestate=None)
 
 
-def generate_env():
+def generate_env(pattern=-1):
     """
     Generates a random MiniHack environment, with goal objects and random objects.
     Objects are defined and taken from the object file.
@@ -116,8 +117,7 @@ def generate_env():
 
     :return: the MiniHack environment (type: gym.Env)
     """
-    room_pattern_file = random_pattern_file()
-    # room_pattern_file = room_pattern_path.format(3)
+    room_pattern_file = random_pattern_file(pattern)
     levelgen = minihack.LevelGenerator(map=read_des_file(room_pattern_file), lit=True, flags=("premapped",))
     room_type = random_room_type()
     # room_type = 2

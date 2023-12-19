@@ -10,6 +10,7 @@ from .data import *
 Location = NewType("Location", Tuple[int, int])
 Location.__doc__ = "A location in the game map."
 
+
 def read_object_file(object_file) -> (list, list):
     """
     Reads the object file and returns the list of clue objects and goal objects.
@@ -28,12 +29,14 @@ def read_object_file(object_file) -> (list, list):
         sys.exit(1)
     return clue_objects, goal_objects
 
+
 def get_walkable_symbols():
     (clue_objects, goal_objects) = read_object_file(object_file_path)
     clue_object_symbols = [symbol for (_, _, display_symbols, _, _) in clue_objects for symbol in display_symbols]
     goal_object_symbols = [object_symbol for (_, object_symbol, _) in goal_objects]
     walkable_symbols = clue_object_symbols + goal_object_symbols + ['.'] + ['@'] + ['<']
     return walkable_symbols
+
 
 walkable_symbols = get_walkable_symbols()
 
@@ -236,7 +239,6 @@ def get_player_location(game_map: np.ndarray, symbol: str = "@") -> Location:
     return x[0], y[0]
 
 
-
 def get_floor_positions(game_map) -> List[Location]:
     """
     Gets the list of the floor positions in the game map.
@@ -361,10 +363,11 @@ def TFFFM_distance(game_map, start: Location, target: Location) -> int:
     return min(distance1, distance2)
 
 
-def euclidean_distance(point1: Location, point2: Location) -> float:
+def euclidean_distance(game_map, point1: Location, point2: Location) -> float:
     """
     Computes the Euclidean distance between two points.
 
+    :param game_map: (actually ignored), the game map
     :param point1: the first point as a tuple (x1, y1)
     :param point2: the second point as a tuple (x2, y2)
     :return: the Euclidean distance between the two points
@@ -374,10 +377,11 @@ def euclidean_distance(point1: Location, point2: Location) -> float:
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
-def manhattan_distance(point1: Location, point2: Location) -> int:
+def manhattan_distance(game_map, point1: Location, point2: Location) -> int:
     """
     Computes the Manhattan distance between two points.
 
+    :param game_map: (actually ignored), the game map
     :param point1: the first point as a tuple (x1, y1)
     :param point2: the second point as a tuple (x2, y2)
     :return: an integer representing the Manhattan
@@ -387,10 +391,11 @@ def manhattan_distance(point1: Location, point2: Location) -> int:
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def diagonal_distance(point1: Location, point2: Location) -> float:
+def diagonal_distance(game_map, point1: Location, point2: Location) -> float:
     """
     Computes the diagonal distance between two points.
 
+    :param game_map: (actually ignored), the game map
     :param point1: the first point as a tuple (x1, y1)
     :param point2: the second point as a tuple (x2, y2)
     :return: the diagonal distance between the two points
@@ -442,10 +447,12 @@ def precondition_game_map(game_map):
                 conditioned_map[y][x + 2]) not in obstacles:
             if check_path(conditioned_map, (x + 1, y)):
                 conditioned_map[y][x + 1] = ord(conditioning_symbol)
-        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in obstacles and chr(conditioned_map[y - 2][x]) not in obstacles:
+        if y - 2 >= 0 and chr(conditioned_map[y - 1][x]) not in obstacles and chr(
+                conditioned_map[y - 2][x]) not in obstacles:
             if check_path(conditioned_map, (x, y - 1)):
                 conditioned_map[y - 1][x] = ord(conditioning_symbol)
-        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in obstacles and chr(conditioned_map[y][x - 2]) not in obstacles:
+        if x - 2 >= 0 and chr(conditioned_map[y][x - 1]) not in obstacles and chr(
+                conditioned_map[y][x - 2]) not in obstacles:
             if check_path(conditioned_map, (x - 1, y)):
                 conditioned_map[y][x - 1] = ord(conditioning_symbol)
 
@@ -496,6 +503,7 @@ def closest_target_to_wall(target, conditioned_map):
         if chr(conditioned_map[y][x]) in walkable_symbols:
             return cell
     raise ValueError("No walkable cell found")
+
 
 def print_level(state):
     """

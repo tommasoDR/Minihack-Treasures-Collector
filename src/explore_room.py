@@ -20,20 +20,21 @@ def exit_room(state, image, environment, target_coordinates: Location):
     :return: the index of the room that has been exited
     """
     # pause the program for two seconds
-    #sleep(2)
+    # sleep(2)
     current_player_location = get_player_location(state['chars'])
     path = a_star(state['chars'], current_player_location, target_coordinates, [])
     actions = actions_from_path(path)
     for action in actions:
         state, _, _, _ = environment.step(action)
         image.set_data(state['pixel'][:, 410:840])
-        #display.display(plt.gcf())
+        # display.display(plt.gcf())
         display.clear_output(wait=True)
 
 
 def exhaustive_exploration(
         initial_state,
-        environment
+        environment,
+        distance=TFFFM_distance
 ):
     """
     Performs an exhaustive search of the map, visiting all the floor positions.
@@ -61,6 +62,7 @@ def exhaustive_exploration(
 
     # I consider imaginary walls as places to visit (use game_map)
     floor_positions = get_floor_positions(game_map)
+    total_floor_positions = len(floor_positions)
     # print_chars_level(game_map)
 
     # obtain floor visited (the neighbors of start)
@@ -69,13 +71,15 @@ def exhaustive_exploration(
     # delete floor visited
     floor_positions = list(filter(lambda position: position not in neighborhood, floor_positions))
 
+    total_steps = 0
+
     while floor_positions:
 
         # generate a random number between 0 and 1
         p = random.uniform(0, 1)
         if p <= PROB_NEAREST_UNVISITED:
             # nearest unvisited floor location target
-            target = min(floor_positions, key=lambda position: TFFFM_distance(game_map, starting_position, position))
+            target = min(floor_positions, key=lambda position: distance(game_map, starting_position, position))
         else:
             # random target
             target = random.choice(floor_positions)
@@ -89,7 +93,6 @@ def exhaustive_exploration(
         if symbol == conditioning_symbol:
             # the target is the closest walkable point to the fake wall target
             target = closest_target_to_wall(target, conditioned_map)
-
 
         # path with A* to the target location
         path = a_star(conditioned_map, starting_position, target, [])
@@ -167,11 +170,12 @@ def exhaustive_exploration(
 
                             # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
                             exit_room(new_state, image, environment, target_coordinates)
-                            return room
+                            return room, round(100 * len(floor_positions) / total_floor_positions, 2), total_steps
 
             image.set_data(new_state['pixel'][:, 410:840])
-            #display.display(plt.gcf())
+            # display.display(plt.gcf())
             display.clear_output(wait=True)
+            total_steps += 1
 
         # next loop I'll start from where I arrived
         starting_position = target
@@ -181,12 +185,12 @@ def exhaustive_exploration(
     object_name = GoalObject.from_string(goal_objects[guessed_room][0])
     if object_name not in obj_seen.values():
         print("The target object is not in the room..., the missing object is: " + object_name.name)
-        return guessed_room
+        return guessed_room, round(100 * len(floor_positions) / total_floor_positions, 2), total_steps
     target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
 
     # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
     exit_room(new_state, image, environment, target_coordinates)
-    return guessed_room
+    return guessed_room, round(100 * len(floor_positions) / total_floor_positions, 2), total_steps
 
 
 # To run: python3 -m src.explore_room
@@ -198,7 +202,7 @@ if __name__ == "__main__":
         state = env.reset()
         # print_level(state)
         # print(goals_info)
-        i = exhaustive_exploration(state, env)
+        i, _ = exhaustive_exploration(state, env)
 
         if goals_info[i][3] == 'uncursed':
             win += 1
