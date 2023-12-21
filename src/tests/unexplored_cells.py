@@ -1,5 +1,4 @@
 # Plots the unexplored cells in terms of the threshold values
-# To run:
 
 from src.tests.utils import get_parser, plot_histogram
 from src.explore_room import exhaustive_exploration
@@ -21,7 +20,7 @@ for threshold in threshold_values:
     total = 0
     for redo in range(num_redo):
         env, goals_info = generate_env(room_pattern)
-        guessed_room, unvisited_positions_percentage, _ = exhaustive_exploration(env.reset(), env)
+        guessed_room, unvisited_positions_percentage, _, _ = exhaustive_exploration(env.reset(), env)
         total += unvisited_positions_percentage
 
     total /= num_redo
