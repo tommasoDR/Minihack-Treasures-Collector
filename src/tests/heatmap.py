@@ -3,11 +3,14 @@ from matplotlib import pyplot as plt
 from src.explore_room import exhaustive_exploration
 from src.generate_room import generate_env
 from src.utils import manhattan_distance, TFFFM_distance
-from src.data import results_directory
+from src.tests.utils import get_parser
 
-parser = argparse.ArgumentParser(description='Command parser')
-parser.add_argument('--room-pattern', type=int, help='Room number')
-args = parser.parse_args()
+
+args = get_parser()
+
+num_redo = args.num_redo
+room_pattern = args.room_pattern
+
 
 distances = [
     manhattan_distance,

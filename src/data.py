@@ -14,7 +14,7 @@ results_directory = project_folder_path + results_directory
 ##### CONFIG VARIABLES #####
 num_rooms = 3
 num_patterns = 4
-num_generations_spins = 2
+num_generations_spins = 3
 probability_threshold = 0.95
 
 ##### CONSTANT SYMBOLS #####
