@@ -77,7 +77,7 @@ def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
     support = {start: 0}
 
     # add the starting point to the NOT visited list (f_value,(position, g))
-    heapq.heappush(not_visited, (h(start, target), (start, 0)))
+    heapq.heappush(not_visited, (h(None, start, target), (start, 0)))
 
     # initialize the queue that will contain the path
     parent = {start: None}
@@ -100,7 +100,7 @@ def a_star(conditioned_game_map: np.ndarray, start: Location, target: Location,
         for neighbor in neighbors:
             if neighbor not in visited:
                 # calculate the cost of the neighbor
-                f_neighbor = h(neighbor, target) + current_g + 1
+                f_neighbor = h(None, neighbor, target) + current_g + 1
                 # add the neighbor to the NOT visited list
                 parent[neighbor] = current_node
 
