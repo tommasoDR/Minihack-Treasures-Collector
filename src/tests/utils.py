@@ -46,6 +46,6 @@ def plot_histogram(x_data, y_data, x_label, y_label, title, filename="", save=Fa
     plt.title(title, fontsize=20, pad=20)
 
     if save and filename != "":
-        plt.savefig(results_directory + "/{}.pdf".format(filename), bbox_inches='tight', dpi=100)
+        plt.savefig(results_directory + "/{}.png".format(filename), bbox_inches='tight', dpi=100)
 
     plt.show()
