@@ -12,35 +12,37 @@ room_pattern = args.room_pattern
 
 distances = [
     manhattan_distance,
-    euclidean_distance,
     TFFFM_distance,
-    diagonal_distance,
 ]
 
+map_conditioning = [False, True]
 
 results = []
 
 data.probability_threshold = 1
 
-for distance in distances:
+for conditioning in map_conditioning:
 
-    total = 0
-    for redo in range(num_redo):
-        env, goals_info = generate_env(room_pattern)
-        guessed_room, _, steps, _ = exhaustive_exploration(env.reset(), env, distance)
-        total += steps
+    for distance in distances:
 
-    total /= num_redo
-    results.append(total)
+        total = 0
 
-title = "Room pattern {}, on {} runs".format(room_pattern, num_redo)
+        for redo in range(num_redo):
+            env, goals_info = generate_env(room_pattern)
+            guessed_room, _, steps, _ = exhaustive_exploration(env.reset(), env, distance, optimization=conditioning)
+            total += steps
+
+        total /= num_redo
+        results.append(total)
+
+title = "Room pattern {} on {} runs".format(room_pattern, num_redo)
 x_label = "Distance"
 y_label = "Number of Steps"
-distances = [
-    "Manhattan",
-    "Euclidean",
-    "TFFFM",
-    "Diagonal"
+metrics = [
+    "Manhattan \nwithout conditioning",
+    "TFFFM \nwithout conditioning",
+    "Manhattan \nwith conditioning",
+    "TFFFM \nwith conditioning",
 ]
 
-plot_histogram(distances, results, x_label, y_label, title, "number_of_steps", False, True)
+plot_histogram(metrics, results, x_label, y_label, title, "number_of_steps", True, False)

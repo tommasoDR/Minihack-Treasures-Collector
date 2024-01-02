@@ -20,17 +20,15 @@ def exit_room(state, image, environment, target_coordinates: Location, heatmap: 
     """
     # pause the program for two seconds
     # sleep(2)
-    total_steps = 0
     current_player_location = get_player_location(state['chars'])
     path = a_star(state['chars'], current_player_location, target_coordinates, [])
     actions = actions_from_path(path)
     for action in actions:
         state, _, _, _ = environment.step(action)
         image.set_data(state['pixel'][:, 410:840])
-        display.display(plt.gcf())
+        # display.display(plt.gcf())
         display.clear_output(wait=True)
-        total_steps += 1
-    return total_steps
+
 
 def exhaustive_exploration(
         initial_state,
@@ -176,11 +174,12 @@ def exhaustive_exploration(
                             target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
 
                             # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
-                            total_steps += exit_room(new_state, image, environment, target_coordinates, heatmap)
-                            return room, round(100 * len(floor_positions) / total_floor_positions, 2), total_steps, heatmap
+                            exit_room(new_state, image, environment, target_coordinates, heatmap)
+                            return room, round(100 * len(floor_positions) / total_floor_positions,
+                                               2), total_steps, heatmap
 
             image.set_data(new_state['pixel'][:, 410:840])
-            display.display(plt.gcf())
+            # display.display(plt.gcf())
             display.clear_output(wait=True)
             total_steps += 1
 
@@ -196,7 +195,7 @@ def exhaustive_exploration(
     target_coordinates = list(obj_seen.keys())[list(obj_seen.values()).index(object_name)]
 
     # print("Object: " + target_room.name + ", Target coordinates: " + str(target_coordinates))
-    total_steps += exit_room(new_state, image, environment, target_coordinates, heatmap)
+    exit_room(new_state, image, environment, target_coordinates, heatmap)
     return guessed_room, round(100 * len(floor_positions) / total_floor_positions, 2), total_steps, heatmap
 
 

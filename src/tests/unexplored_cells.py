@@ -16,7 +16,6 @@ results = []
 
 for threshold in threshold_values:
     data.probability_threshold = threshold
-    print(data.probability_threshold)
     total = 0
     for redo in range(num_redo):
         env, goals_info = generate_env(room_pattern)

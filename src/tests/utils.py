@@ -25,12 +25,15 @@ def plot_histogram(x_data, y_data, x_label, y_label, title, filename="", save=Fa
     sns.set(style="whitegrid")
     plt.figure(figsize=(10, 7))
 
+    group_1 = y_data[:2]
+    group_2 = y_data[2:]
+
     if line_plot:
         sns.lineplot(x=x_data, y=y_data, marker='o', color='blue')
     else:
-        ax = sns.barplot(x=x_data, y=y_data, color='blue')
+        ax = sns.barplot(x=x_data[:2], y=group_1)
+        ax = sns.barplot(x=x_data[2:], y=group_2)
         # y-axis view limits
-        ax.set_ylim(-10, 115)
 
         # line contour in all bars
         for patch in ax.patches:
@@ -38,14 +41,15 @@ def plot_histogram(x_data, y_data, x_label, y_label, title, filename="", save=Fa
             patch.set_linewidth(0.8)
 
     # set ticks font size
-    plt.xticks(fontsize=10)
-    plt.yticks(fontsize=10)
+    plt.xticks(fontsize=13)
+    plt.yticks(fontsize=13)
 
     plt.xlabel(x_label, fontsize=15, labelpad=15)
     plt.ylabel(y_label, fontsize=15, labelpad=15)
     plt.title(title, fontsize=20, pad=20)
 
     if save and filename != "":
-        plt.savefig(results_directory + "/{}.png".format(filename), bbox_inches='tight', dpi=100)
+        plt.savefig(results_directory + "/{}.png".format(filename), bbox_inches='tight', dpi=200)
 
     plt.show()
+

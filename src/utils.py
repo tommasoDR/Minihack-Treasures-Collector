@@ -333,7 +333,7 @@ def TFFFM_distance(game_map, start: Location, target: Location) -> int:
         :param symbol: the symbol to check
         :return: 30 if the symbol is a wall, 1 otherwise
         """
-        return 8 if symbol in real_walls else 1
+        return 15 if symbol in real_walls else 1
 
     distance1 = 0
     distance2 = 0
