@@ -26,7 +26,7 @@ def exit_room(state, image, environment, target_coordinates: Location, heatmap: 
     for action in actions:
         state, _, _, _ = environment.step(action)
         image.set_data(state['pixel'][:, 410:840])
-        # display.display(plt.gcf())
+        display.display(plt.gcf())
         display.clear_output(wait=True)
 
 
@@ -179,7 +179,7 @@ def exhaustive_exploration(
                                                2), total_steps, heatmap
 
             image.set_data(new_state['pixel'][:, 410:840])
-            # display.display(plt.gcf())
+            display.display(plt.gcf())
             display.clear_output(wait=True)
             total_steps += 1
 
